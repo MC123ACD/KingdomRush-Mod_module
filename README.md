@@ -66,8 +66,7 @@ mods/
 ### 2. 导入模块
 在 `all/director` 的初始化函数末尾增加代码：
 ```lua
-local mod_utils = require("mods.mod_utils")
-mod_utils:init()
+require("mods.mod_utils")
 ```
 
 ### 3. 配置示例
