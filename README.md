@@ -63,7 +63,14 @@ mods/
         └── helper.lua      -- 辅助模块
 ```
 
-### 2. 配置示例
+### 2. 导入模块
+在 `all/director` 的初始化函数末尾增加代码：
+```lua
+local mod_utils = require("mods.mod_utils")
+mod_utils:init()
+```
+
+### 3. 配置示例
 ```lua
 -- config.lua
 return {
@@ -79,7 +86,7 @@ return {
 }
 ```
 
-### 3. 模块实现
+### 4. 模块实现
 ```lua
 -- your_mod.lua
 local M = {}
