@@ -108,50 +108,80 @@ function mod_utils:table_tostring(t)
         return tostring(t)
     end
 
-    local max_items = 5 -- 限制显示的项目数量
     local items = {}
-    local count = 0
 
     for k, v in pairs(t) do
-        if count >= max_items then
-            table.insert(items, "...")
-            break
-        end
-
-        local key_str = type(k) == "string" and k or "[" .. tostring(k) .. "]"
         local value_str
         if type(v) == "string" then
-            value_str = '"' .. v .. '"'
+            value_str = v
         elseif type(v) == "table" then
             value_str = "{...}" -- 不递归显示嵌套表
         else
             value_str = tostring(v)
         end
 
-        table.insert(items, key_str .. "=" .. value_str)
-        count = count + 1
+        table.insert(items, value_str)
     end
 
-    return "{" .. table.concat(items, ", ") .. "}"
+    return table.concat(items, ", ")
 end
 
 --- 获取模组调试信息
 ---@param config table 模组配置表
 ---@return string 格式化的模组信息字符串
 function mod_utils:get_debug_info(config)
-    local f = string.format
+    local game_version = self:table_tostring(config.game_version)
+    local o = "\n"
+
+    local function f(...)
+        o = o .. string.format(...)
+    end
+
     -- 构建模组信息标题
-    local o = f("------------------- LOADED_MOD: %s -----------------------\n", config.name)
-    o = o .. f("name:           %s\n", config.name or "unknown")            -- 模组名称
-    o = o .. f("desc:           %s\n", config.desc or "unknown")            -- 模组描述
-    o = o .. f("version:        %s\n", config.version or "unknown")         -- 模组版本
-    o = o .. f("by:             %s\n", config.by or "unknown")              -- 作者信息
-    o = o .. f("url:            %s\n", config.url or "unknown")             -- 模组发布地址
-    o = o .. f("github_url:     %s\n", config.github_url or "unknown")      -- GitHub地址
-    o = o .. f("priority:       %s\n", config.priority or "unknown")   -- 优先级
-    o = o .. f("game_version:   %s", self:table_tostring(config.game_version))    -- 兼容游戏版本
+    f("------------------- LOADED_MOD: %s -----------------------\n", config.name)
+    f("%-9s: %-20s", "name", config.name or "unknown")           -- 模组名称
+    f(" | %-13s: %s\n", "version", config.version or "unknown")  -- 模组版本
+    f("%-9s: %-20s", "by", config.by or "unknown")               -- 作者信息
+    f(" | %-13s: %s\n", "game_version", game_version)            -- 兼容游戏版本
+    f("%-9s: %-20s\n", "priority", config.priority or "unknown") -- 优先级
+    f("%-9s: %s\n", "desc", config.desc or "unknown")            -- 模组描述
+    f("%-9s: %s", "url", config.url or "unknown")            -- 模组发布地址
 
     return o
+end
+
+function mod_utils:check_get_available_mods()
+    local mods_data = {}
+
+    for _, mod_data in ipairs(self:get_subdirs("mods")) do
+        -- 加载模组配置文件
+        local config = require(self.ppref .. mod_data.path .. ".config")
+
+        -- 检查是否是兼容游戏版本
+        if type(config.game_version) == "string" and config.game_version == KR_GAME or type(config.game_version) == "table" and table.contains(config.game_version, KR_GAME) then
+            -- 检查模组是否启用且路径存在
+            if config.enabled and love.filesystem.exists(mod_data.path) then
+                -- 添加优先级信息到模组数据中
+                mod_data["priority"] = config.priority
+                table.insert(mods_data, mod_data)
+            else
+                log.error("%s is disabled!", mod_data.name)
+            end
+        else
+            -- 不是兼容的游戏版本
+            log.error("Mod '%s' is not compatible. Required game version: %s", config.name,
+                self:table_tostring(config.game_version) or "unknown", config.name)
+        end
+    end
+
+    if #mods_data > 0 then
+        -- 根据优先级对模组进行降序排序（优先级高的先加载）
+        table.sort(mods_data, function(a, b)
+            return a.priority > b.priority
+        end)
+    end
+
+    return mods_data
 end
 
 --- 替换原函数

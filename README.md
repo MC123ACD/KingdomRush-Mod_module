@@ -10,23 +10,22 @@
 -- 模块结构要求：
 -- mods/
 --   ├── example_mod/
---   │   ├── config.lua    -- 模块配置文件
---   │   └── example_mod.lua      -- 模块主文件
+--   │   ├── config.lua        -- 模块配置文件
+--   │   └── example_mod.lua   -- 模块主文件
 ```
 
 ### 2. 配置驱动
 每个模块必须包含 `config.lua` 配置文件：
 ```lua
 return {
-    name = "示例模块",        -- 模块显示名称
-    desc = "功能描述",        -- 模块详细描述
-    version = "1.0.0",       -- 版本号
-    game_version = "kr5",	-- 兼容的游戏版本
-    by = "作者名",           -- 作者信息
-    url = "模块主页",         -- 相关链接
-    github_url = "GitHub地址", -- 代码仓库
-    enabled = true,          -- 启用状态
-    priority = 100           -- 加载优先级（数值越大优先级越高）
+    name = "示例模块",         -- 模块显示名称
+    desc = "功能描述",         -- 模块详细描述
+    version = "1.0.0",        -- 版本号
+    game_version = "kr5",	  -- 兼容的游戏版本
+    by = "作者名",             -- 作者信息
+    url = "模块主页",           -- 相关链接
+    enabled = true,           -- 启用状态
+    priority = 100            -- 加载优先级（数值越大优先级越高）
 }
 ```
 
@@ -50,16 +49,27 @@ return {
 mods/
 └── your_mod/
     ├── config.lua          -- 模块配置
-    ├── your_mod.lua            -- 模块主逻辑，名称务必与当前目录相同
+    ├── your_mod.lua        -- 模块主逻辑，名称务必与当前目录相同
     └── subfolder/          -- 可选子目录
         └── helper.lua      -- 辅助模块
 ```
 
 ### 2. 导入模块
-在 `all/director` 的初始化函数末尾增加代码：
+将 `main` 的 `love.update`（前三代为 `load_director`） 函数的 `director:init(main.params)` 字段修改为：
 ```lua
 local mod_main = require("mods.mod_main")
-mod_main:init()
+local mod_utils = require("mods.mod_utils")
+local mod_hook = require("mods.mod_hook")
+local mods_data = mod_utils:check_get_available_mods()
+mod_hook.mods_data = mods_data
+
+local function director_init(params)
+    mod_main:front_init(mods_data)
+    director:init(main.params)
+    mod_main:after_init(mods_data)
+end
+
+director_init(main.params)
 ```
 
 ### 3. 配置示例
@@ -72,7 +82,6 @@ return {
     game_version = "kr5",
     by = "开发者",
     url = "https://example.com",
-    github_url = "https://github.com/example/mod",
     enabled = true,
     priority = 150
 }
