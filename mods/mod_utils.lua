@@ -22,7 +22,7 @@ mod_utils.auto_table_mt = {
 }
 
 --- 获取指定路径下的所有子目录名
---- 
+---
 --- 返回一个包含子目录信息的表，每个元素包含name(子目录名)和path(完整路径)
 ---@param path string 要扫描的目录路径
 ---@return table 包含子目录信息的表
@@ -151,7 +151,7 @@ function mod_utils:get_debug_info(config)
     f(" | %-13s: %s\n", "game_version", game_version)            -- 兼容游戏版本
     f("%-9s: %-20s\n", "priority", config.priority or "unknown") -- 优先级
     f("%-9s: %s\n", "desc", config.desc or "unknown")            -- 模组描述
-    f("%-9s: %s", "url", config.url or "unknown")            -- 模组发布地址
+    f("%-9s: %s", "url", config.url or "unknown")                -- 模组发布地址
 
     return o
 end
@@ -203,13 +203,9 @@ end
 --- @param handler function 替换的函数
 --- @return nil
 function mod_utils.HOOK(obj, fn_name, handler)
-    if not obj._hook_origin_fn then
-        obj._hook_origin_fn = {}
-    end
+    obj._hook_origin_fn = obj._hook_origin_fn or {}
 
-    if not obj._hook_origin_fn[fn_name] then
-        obj._hook_origin_fn[fn_name] = obj[fn_name]
-    end
+    obj._hook_origin_fn[fn_name] = obj._hook_origin_fn[fn_name] or obj[fn_name]
 
     obj[fn_name] = function(...)
         return handler(obj._hook_origin_fn[fn_name], ...)
@@ -221,18 +217,18 @@ end
 --- @param fn_name string 函数名
 --- @return nil
 function mod_utils.UNHOOK(obj, fn_name)
-    if not obj._hook_origin_fn then -- 若对应函数未 hook 直接返回
+    if not obj._hook_origin_fn then
         return
     end
 
-    local hook_fn = obj._hook_origin_fn[fn_name]    -- 存储 hook 后的函数
+    local hook_fn = obj._hook_origin_fn[fn_name]
 
     if not hook_fn then
         return
     end
 
-    obj[fn_name] = hook_fn  -- 还原
-    obj._hook_origin_fn[fn_name] = nil  -- 移除标记
+    obj[fn_name] = hook_fn
+    obj._hook_origin_fn[fn_name] = nil
 
     log.debug("Unhooked function: %s.%s", tostring(obj), fn_name)
 end
