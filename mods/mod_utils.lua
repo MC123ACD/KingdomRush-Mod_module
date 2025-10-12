@@ -52,6 +52,8 @@ end
 ---@param mod_data table 模组数据，包含模组路径等信息
 ---@return nil
 function mod_utils:add_path(mod_data)
+    self.kui_insert = self.kui_insert or {}
+
     -- 自定义格式化函数，将路径与模组名结合
     local function f(str, ...)
         local path = mod_data.path .. "/" .. str
@@ -69,27 +71,28 @@ function mod_utils:add_path(mod_data)
         log.debug("Added path at require: %s", "mods/?.lua")
     end
 
-    -- 获取模组下的所有目录，并将其添加到路径中
     local mod_dirs = self:get_subdirs(mod_data.path)
 
     -- 遍历模组下的所有目录
     for _, dir in ipairs(mod_dirs) do
-        -- kui_templates 特例单独处理（KUI模板系统特殊路径）
         if table.contains(self.ignored_path, dir.name) then
             log.debug("Ignored mod path: %s", dir.path)
-        elseif dir.name == "kui_templates" then
-            local kui_db
+        elseif dir.name == "data" then
+            for _, data_dir in ipairs(self:get_subdirs(dir.path)) do
+                local kui_db
 
-            -- 根据运行环境选择不同的KUI数据库模块
-            if IS_KR5 then
-                kui_db = require("klove.kui_db")
-            else
-                kui_db = require("kui_db")
+                -- 根据运行环境选择不同的KUI数据库模块
+                if IS_KR5 then
+                    kui_db = require("klove.kui_db")
+                else
+                    kui_db = require("kui_db")
+                end
+
+                -- 将KUI模板路径添加到KUI数据库路径表中（优先级最高）
+                table.insert(kui_db.paths, 1, f("data/kui_templates"))
+
+                log.debug("Added path in kui_db: %s", f("kui_templates", dir.name))
             end
-
-            -- 将KUI模板路径添加到KUI数据库路径表中（优先级最高）
-            table.insert(kui_db.paths, 1, f("kui_templates"))
-            log.debug("Added path in kui_db: %s", f("kui_templates", dir.name))
         else
             -- 其他目录添加到require路径中
             table.insert(additional_paths, f("%s/?.lua", dir.name))
@@ -114,8 +117,6 @@ function mod_utils:table_tostring(t)
         local value_str
         if type(v) == "string" then
             value_str = v
-        elseif type(v) == "table" then
-            value_str = "{...}" -- 不递归显示嵌套表
         else
             value_str = tostring(v)
         end
@@ -174,14 +175,21 @@ function mod_utils:check_get_available_mods()
         end
     end
 
+    local ascending = {}
+
     if #mods_data > 0 then
         -- 根据优先级对模组进行降序排序（优先级高的先加载）
         table.sort(mods_data, function(a, b)
             return a.priority > b.priority
         end)
+
+        -- 根据优先级对模组进行升序排序
+        for i = #mods_data, 1, -1 do
+            table.insert(ascending, mods_data[i])
+        end
     end
 
-    return mods_data
+    return mods_data, ascending
 end
 
 --- 替换原函数

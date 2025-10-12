@@ -57,19 +57,7 @@ mods/
 ### 2. 导入模块
 将 `main` 的 `love.update`（前三代为 `load_director`） 函数的 `director:init(main.params)` 字段修改为：
 ```lua
-local mod_main = require("mods.mod_main")
-local mod_utils = require("mods.mod_utils")
-local mod_hook = require("mods.mod_hook")
-local mods_data = mod_utils:check_get_available_mods()
-mod_hook.mods_data = mods_data
-
-local function director_init(params)
-    mod_main:front_init(mods_data)
-    director:init(main.params)
-    mod_main:after_init(mods_data)
-end
-
-director_init(main.params)
+require("mods.mod_main"):init(director)
 ```
 
 ### 3. 配置示例
@@ -115,7 +103,7 @@ return M
 - 对关键操作进行异常捕获
 
 ### 2. 兼容性考虑
-- 此模块覆盖实现方法为直接增加高优先级模块搜索路径，应避免覆盖源代码
+- 非必要不要覆盖模块
 - 避免使用可能与其他模块冲突的全局变量
 - 提供模块间的通信接口
 

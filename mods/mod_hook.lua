@@ -3,6 +3,8 @@ local log = require("klua.log"):new("mod_hook")
 local IS_KR5 = KR_GAME == "kr5"
 local I = require("klove.image_db")
 local S = require("sound_db")
+local LU = require("level_utils")
+local P = require("path_db")
 local FS = love.filesystem
 local mod_utils = require("mods.mod_utils")
 local HOOK = mod_utils.HOOK
@@ -28,13 +30,15 @@ end
 function hook:after_init()
     HOOK(I, "load_atlas", self.I.load_atlas)
     HOOK(S, "load_group", self.S.load_group)
+    HOOK(LU, "load_level", self.LU.load_level)
+    HOOK(P, "load", self.P.load)
 end
 
 -- 增加图像资源覆盖路径
 function hook.I.load_atlas(origin, self, ref_scale, path, name, yielding)
     origin(self, ref_scale, path, name, yielding)
 
-    for _, mod_data in ipairs(hook.mods_data) do
+    for _, mod_data in ipairs(hook.asc_asc_mods_data) do
         local mod_assets_path = mod_data.path .. "/_assets/images"
 
         if FS.isDirectory(mod_assets_path) then
@@ -58,13 +62,11 @@ end
 -- 增加声音资源覆盖路径
 function hook.S.init(origin, self, path, overrides)
     origin(self, path, overrides)
-    
-    for _, mod_data in ipairs(hook.mods_data) do
+
+    for _, mod_data in ipairs(hook.asc_mods_data) do
         local mod_assets_path = mod_data.path .. "/_assets/sounds"
 
         if FS.isDirectory(mod_assets_path) then
-            -- 由于原函数实现逻辑缺少路径检查，所以只能写低兼容性代码
-
             if FS.isFile(mod_assets_path .. "/settings.lua") then
                 local f_settings = FS.load(path .. "/settings.lua")()
 
@@ -76,12 +78,16 @@ function hook.S.init(origin, self, path, overrides)
                         self.active_sources[gid] = self.active_sources[gid] or {}
                     end
                 end
+
+                self.mod_load.settings = true
             end
 
             if FS.isFile(mod_assets_path .. "/sounds.lua") then
                 self.sounds = FS.load(mod_assets_path .. "/sounds.lua")()
 
                 log.info("Found sound's sounds override in mod %s", mod_data.name)
+
+                self.mod_load.sounds = true
             end
 
             if FS.isFile(mod_assets_path .. "/groups.lua") then
@@ -142,7 +148,7 @@ end
 function hook.S.load_group(origin, self, name, yielding, filter)
     origin(self, name, yielding, filter)
 
-    for _, mod_data in ipairs(hook.mods_data) do
+    for _, mod_data in ipairs(hook.asc_mods_data) do
         local mod_files_path = mod_data.path .. "/_assets/sounds/files"
 
         if FS.isDirectory(mod_files_path) then
@@ -166,6 +172,44 @@ function hook.S.load_group(origin, self, name, yielding, filter)
 
             self.files_path = origin_path
         end
+    end
+end
+
+-- 增加关卡数据路径
+function hook.LU.load_level(origin, store, name)
+    local level = origin(store, name)
+
+    for _, mod_data in ipairs(hook.asc_mods_data) do
+        local origin_path = KR_PATH_GAME
+        KR_PATH_GAME = mod_data.path
+
+        local new_level = origin(store, name)
+
+        KR_PATH_GAME = origin_path
+
+        if new_level.data then
+            level.data = new_level.data
+        end
+
+        if new_level.locations then
+            level.locations = new_level.locations
+        end
+    end
+
+    return level
+end
+
+-- 增加波次数据路径
+function hook.P.load(origin, self, name, visible_coords)
+    origin(self, name, visible_coords)
+
+    for _, mod_data in ipairs(hook.asc_mods_data) do
+        local origin_path = KR_PATH_GAME
+        KR_PATH_GAME = mod_data.path
+
+        origin(self, name, visible_coords)
+
+        KR_PATH_GAME = origin_path
     end
 end
 
