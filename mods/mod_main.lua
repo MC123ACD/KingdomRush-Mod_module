@@ -13,13 +13,15 @@ local mod_main = {}
 
 function mod_main:init(director)
     local descending_mods_data, ascending_mods_data = mod_utils:check_get_available_mods()
+    self.desc_mods_data = descending_mods_data
+    self.asc_mods_data = ascending_mods_data
     mod_hook.desc_mods_data = descending_mods_data
     mod_hook.asc_mods_data = ascending_mods_data
 
     local function director_init(params)
-        self:front_init(ascending_mods_data)
+        self:front_init()
         director:init(main.params)
-        self:after_init(ascending_mods_data)
+        self:after_init()
     end
 
     director_init(main.params)
@@ -31,17 +33,25 @@ end
 
 --- 初始化所有已启用的模组
 ---@return nil
-function mod_main:after_init(mods_data)
-    -- 按排序顺序初始化所有模组
-    for _, mod_data in ipairs(mods_data) do
-        -- 重新加载模组配置（确保获取最新配置）
-        local config = require(mod_utils.ppref .. mod_data.path .. ".config")
+function mod_main:after_init()
+    FS.setRequirePath("mods/?.lua" .. ";" .. FS.getRequirePath())
+    package.path = FS.getRequirePath()
 
+    -- 正序加载所有模组，确保加载模块顺序正确
+    for _, mod_data in ipairs(self.desc_mods_data) do
         -- 添加模组路径到package.path
         mod_utils:add_path(mod_data)
-        -- 加载并初始化模组
-        local mod = require(mod_data.name)
-        mod:init()
+
+        -- 加载模组
+        mod_data.module = require(mod_data.name)
+    end
+
+    -- 倒序初始化模组，确保高优先级覆盖低优先级
+    for _, mod_data in ipairs(self.asc_mods_data) do
+        local config = require(mod_utils.ppref .. mod_data.path .. ".config")
+
+        -- 初始化模组
+        mod_data.module:init()
 
         -- 打印模组加载信息
         log.error(mod_utils:get_debug_info(config))

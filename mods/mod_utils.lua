@@ -10,6 +10,17 @@ else
     mod_utils.ppref = base_dir ~= work_dir and "" or "src/"
 end
 
+-- 元表：自动创建不存在表
+mod_utils.auto_table_mt = {
+    __index = function(table, key)
+        local new = {}
+        setmetatable(new, auto_table_mt)
+
+        rawset(table, key, new)
+        return new
+    end
+}
+
 --- 获取指定路径下的所有子目录名
 --- 
 --- 返回一个包含子目录信息的表，每个元素包含name(子目录名)和path(完整路径)
@@ -64,12 +75,6 @@ function mod_utils:add_path(mod_data)
     local additional_paths = {
         f("?.lua") -- 添加模组根目录的lua文件搜索路径
     }
-
-    -- 将mods根目录添加到路径中，只增加一次（避免重复添加）
-    if not package.path:find("^mods/%?%.lua$") then
-        table.insert(additional_paths, 1, "mods/?.lua")
-        log.debug("Added path at require: %s", "mods/?.lua")
-    end
 
     local mod_dirs = self:get_subdirs(mod_data.path)
 
@@ -238,14 +243,13 @@ end
 以下是将一些模块与函数设为全局便于使用
 --]]
 
-require("main_globals")
-require("constants")
 require("klove.kui")
 require("klua.table")
 signal = require("hump.signal")
 km = require("klua.macros")
 SH = require("klove.shader_db")
 V = require("klua.vector")
+v = V.v
 class = require("middleclass")
 bit = require("bit")
 band = bit.band
@@ -253,7 +257,6 @@ bor = bit.bor
 bnot = bit.bnot
 copy = table.deepclone
 clone = table.clone
-epsilon = 1e-09
 
 E = require("entity_db")
 UPGR = require("upgrades")
