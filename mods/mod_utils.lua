@@ -198,29 +198,27 @@ function mod_utils:check_get_available_mods()
 end
 
 --- 替换原函数
---- @param obj table 目标
---- @param fn_name str 函数名
+--- @param obj table 对象
+--- @param fn_name string 函数名
 --- @param handler function 替换的函数
 --- @return nil
 function mod_utils.HOOK(obj, fn_name, handler)
-    if not obj._hook_origin_fn then -- 若没有 hook 给定的函数
+    if not obj._hook_origin_fn then
         obj._hook_origin_fn = {}
-    elseif obj._hook_origin_fn[fn_name] then    -- 若已 hook 给定的函数直接返回
-        return
     end
 
-    local hook_fn = obj[fn_name]    -- 存储原函数
-
-    obj._hook_origin_fn[fn_name] = hook_fn  -- 标记已 hook
+    if not obj._hook_origin_fn[fn_name] then
+        obj._hook_origin_fn[fn_name] = obj[fn_name]
+    end
 
     obj[fn_name] = function(...)
-        return handler(hook_fn, ...)    -- 替换原函数
+        return handler(obj._hook_origin_fn[fn_name], ...)
     end
 end
 
 --- 移除 hook
---- @param obj table 目标
---- @param fn_name str 函数名
+--- @param obj table 对象
+--- @param fn_name string 函数名
 --- @return nil
 function mod_utils.UNHOOK(obj, fn_name)
     if not obj._hook_origin_fn then -- 若对应函数未 hook 直接返回
