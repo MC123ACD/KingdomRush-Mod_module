@@ -18,13 +18,13 @@ function mod_main:init(director)
     mod_hook.desc_mods_data = descending_mods_data
     mod_hook.asc_mods_data = ascending_mods_data
 
-    local function director_init(params)
+    local function director_init()
         self:front_init()
         director:init(main.params)
         self:after_init()
     end
 
-    director_init(main.params)
+    director_init()
 end
 
 function mod_main:front_init(mods_data)

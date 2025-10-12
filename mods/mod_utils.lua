@@ -59,7 +59,7 @@ function mod_utils:get_subdirs(path)
     return folders
 end
 
---- 将模组所有目录添加到 package.path 中，以便 require 能够找到模组文件
+---将模组所有目录添加到 package.path 中，以便 require 能够找到模组文件
 ---@param mod_data table 模组数据，包含模组路径等信息
 ---@return nil
 function mod_utils:add_path(mod_data)
