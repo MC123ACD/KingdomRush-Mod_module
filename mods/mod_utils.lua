@@ -2,11 +2,19 @@
 local log = require("klua.log"):new("mod_utils")
 local IS_KR5 = KR_GAME == "kr5"
 local FS = love.filesystem
+
+local A
+if IS_KR5 then
+    A = require("klove.animation_db")
+else
+    A = require("animation_db")
+end
+
 local mod_utils = {}
 
-if love.filesystem.isFused() then
-    mod_utils.ppref = ""
-else
+mod_utils.ppref = ""
+
+if not love.filesystem.isFused() then
     mod_utils.ppref = base_dir ~= work_dir and "" or "src/"
 end
 
@@ -111,6 +119,9 @@ function mod_utils:add_path(mod_data)
     log.debug("Current package.path: %s", package.path)
 end
 
+--- 将表转化为字符串，返回的字符串无键值与大括号
+---@param t table 表
+---@return string 字符串
 function mod_utils:table_tostring(t)
     if type(t) ~= "table" then
         return tostring(t)
@@ -122,6 +133,8 @@ function mod_utils:table_tostring(t)
         local value_str
         if type(v) == "string" then
             value_str = v
+        elseif type(v) == "table" then
+            value_str = "{" .. self:table_tostring(t) .. "}"
         else
             value_str = tostring(v)
         end
@@ -156,6 +169,8 @@ function mod_utils:get_debug_info(config)
     return o
 end
 
+---检查并返回包含可用模组的表
+---@return table 降序排序的表, table 升序排序的表
 function mod_utils:check_get_available_mods()
     local mods_data = {}
 
@@ -197,6 +212,10 @@ function mod_utils:check_get_available_mods()
     return mods_data, ascending
 end
 
+--[[
+    通用工具函数
+--]]
+
 --- 替换原函数
 --- @param obj table 对象
 --- @param fn_name string 函数名
@@ -231,6 +250,16 @@ function mod_utils.UNHOOK(obj, fn_name)
     obj._hook_origin_fn[fn_name] = nil
 
     log.debug("Unhooked function: %s.%s", tostring(obj), fn_name)
+end
+
+---根据表修改指定动画
+---@param t table 表
+function mod_utils:a_db_reset(t)
+    for i, v in pairs(t) do
+        if type(v) == "table" then
+            A.db[i] = v
+        end
+    end
 end
 
 --[[

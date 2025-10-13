@@ -9,6 +9,13 @@ local FS = love.filesystem
 local mod_utils = require("mods.mod_utils")
 local HOOK = mod_utils.HOOK
 
+local A
+if IS_KR5 then
+    A = require("klove.animation_db")
+else
+    A = require("animation_db")
+end
+
 local hook = {}
 
 -- 元表：自动创建不存在表
@@ -28,10 +35,18 @@ function hook:front_init()
 end
 
 function hook:after_init()
+    HOOK(A, "fni", self.A.fni)
     HOOK(I, "load_atlas", self.I.load_atlas)
     HOOK(S, "load_group", self.S.load_group)
     HOOK(LU, "load_level", self.LU.load_level)
     HOOK(P, "load", self.P.load)
+end
+
+-- 为单独修改动画速度增加支持
+function hook.A.fni(origin, self, animation, time_offset, loop, fps, tick_length)
+    fps = animation.fps or self.fps
+
+    return origin(self, animation, time_offset, loop, fps, tick_length)
 end
 
 -- 增加图像资源覆盖路径
@@ -180,7 +195,7 @@ function hook.LU.load_level(origin, store, name)
     local level = origin(store, name)
 
     for _, mod_data in ipairs(hook.asc_mods_data) do
-        if FS.isDirectory(mod_data.path .. "/data/level") then
+        if FS.isDirectory(mod_data.path .. "/data/levels") then
             local origin_path = KR_PATH_GAME
             KR_PATH_GAME = mod_data.path
 
