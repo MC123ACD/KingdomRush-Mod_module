@@ -11,7 +11,7 @@
 
 #### 3. 提供简易多模组管理
 - 自动加载 mods 目录下的所有模组
-- 模组按优先级降序加载，高优先级模组优先执行，覆盖低优先级模块的修改
+- 模组按优先级降序加载，高优先级模组将会覆盖低优先级模块的修改
 - 多个模组同时 HOOK 同一函数，高优先级模组将会覆盖低优先级模组的 HOOK
 
 ## 使用方法
@@ -38,14 +38,14 @@ require("mods.mod_main"):init(director)
 ```lua
 -- config.lua
 return {
-    name = "UI增强模块",
-    desc = "提供额外的用户界面功能",
-    version = "1.0.0",
-    game_version = "kr5",
-    by = "开发者",
-    url = "https://example.com",
-    enabled = true,
-    priority = 150
+    name = "UI增强模块",            -- 名称
+    desc = "提供额外的用户界面功能",  -- 描述
+    version = "1.0.0",            -- 版本
+    game_version = "kr5",         -- 兼容游戏版本，可为表
+    by = "开发者",                 -- 作者
+    url = "https://example.com",  -- 发布页面
+    enabled = true,               -- 启用状态
+    priority = 150                -- 优先级
 }
 ```
 
