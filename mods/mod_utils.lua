@@ -255,10 +255,43 @@ end
 ---根据表修改指定动画
 ---@param t table 表
 function mod_utils:a_db_reset(t)
-    for i, v in pairs(t) do
-        if type(v) == "table" then
-            A.db[i] = v
+    local expanded_keys = {}
+    local deleted_keys = {}
+
+    for k, v in pairs(t) do
+        if v.layer_from and v.layer_to and v.layer_prefix then
+            for i = v.layer_from, v.layer_to do
+                local nk = string.gsub(k, "layerX", "layer" .. i)
+                local nv = {
+                    group = v.group,
+                    pre = v.pre,
+                    post = v.post,
+                    from = v.from,
+                    to = v.to,
+                    ranges = v.ranges,
+                    frames = v.frames,
+                    prefix = string.format(v.layer_prefix, i)
+                }
+
+                expanded_keys[nk] = nv
+
+                table.insert(deleted_keys, k)
+            end
+
+            table.insert(expanded_keys, k)
         end
+    end
+
+    for k, v in pairs(expanded_keys) do
+        if not v.frames then
+            A:expand_frames(v)
+        end
+
+        A.db[k] = v
+    end
+
+    for k, v in pairs(deleted_keys) do
+        self.db[k] = nil
     end
 end
 
