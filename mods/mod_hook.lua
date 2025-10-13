@@ -175,41 +175,45 @@ function hook.S.load_group(origin, self, name, yielding, filter)
     end
 end
 
--- 增加关卡数据路径
+-- 增加关卡数据覆盖路径
 function hook.LU.load_level(origin, store, name)
     local level = origin(store, name)
 
     for _, mod_data in ipairs(hook.asc_mods_data) do
-        local origin_path = KR_PATH_GAME
-        KR_PATH_GAME = mod_data.path
+        if FS.isDirectory(mod_data.path .. "/data/level") then
+            local origin_path = KR_PATH_GAME
+            KR_PATH_GAME = mod_data.path
 
-        local new_level = origin(store, name)
+            local new_level = origin(store, name)
 
-        KR_PATH_GAME = origin_path
+            KR_PATH_GAME = origin_path
 
-        if new_level.data then
-            level.data = new_level.data
-        end
+            if new_level.data then
+                level.data = new_level.data
+            end
 
-        if new_level.locations then
-            level.locations = new_level.locations
+            if new_level.locations then
+                level.locations = new_level.locations
+            end
         end
     end
 
     return level
 end
 
--- 增加波次数据路径
+-- 增加波次数据覆盖路径
 function hook.P.load(origin, self, name, visible_coords)
     origin(self, name, visible_coords)
 
     for _, mod_data in ipairs(hook.asc_mods_data) do
-        local origin_path = KR_PATH_GAME
-        KR_PATH_GAME = mod_data.path
+        if FS.isDirectory(mod_data.path .. "/data/waves") then
+            local origin_path = KR_PATH_GAME
+            KR_PATH_GAME = mod_data.path
 
-        origin(self, name, visible_coords)
+            origin(self, name, visible_coords)
 
-        KR_PATH_GAME = origin_path
+            KR_PATH_GAME = origin_path
+        end
     end
 end
 
