@@ -253,16 +253,26 @@ function mod_utils.UNHOOK(obj, fn_name)
 end
 
 ---根据表修改指定动画
+---
+---若动画表中removed为真将会移除动画
 ---@param t table 表
+---@return table 增加的动画, table 删除的动画
 function mod_utils:a_db_reset(t)
-    local expanded_keys = {}
-    local deleted_keys = {}
+    local added_a = {}
+    local deleted_k = {}
 
     for k, v in pairs(t) do
+        if v.removed then
+            table.insert(deleted_k, k)
+
+            goto skip_add
+        end
+
         if v.layer_from and v.layer_to and v.layer_prefix then
             for i = v.layer_from, v.layer_to do
                 local nk = string.gsub(k, "layerX", "layer" .. i)
                 local nv = {
+                    fps = v.fps,
                     group = v.group,
                     pre = v.pre,
                     post = v.post,
@@ -273,26 +283,30 @@ function mod_utils:a_db_reset(t)
                     prefix = string.format(v.layer_prefix, i)
                 }
 
-                expanded_keys[nk] = nv
+                added_a[nk] = nv
 
-                table.insert(deleted_keys, k)
+                table.insert(deleted_k, k)
             end
-
-            table.insert(expanded_keys, k)
+        else
+            added_a[k] = v
         end
+
+        ::skip_add::
     end
 
-    for k, v in pairs(expanded_keys) do
-        if not v.frames then
+    for k, v in pairs(added_a) do
+        if IS_KR5 and not v.frames then
             A:expand_frames(v)
         end
 
         A.db[k] = v
     end
 
-    for k, v in pairs(deleted_keys) do
-        self.db[k] = nil
+    for _, v in ipairs(deleted_k) do
+        A.db[v] = nil
     end
+
+    return added_a, deleted_k
 end
 
 --[[

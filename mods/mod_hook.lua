@@ -43,10 +43,10 @@ function hook:after_init()
 end
 
 -- 为单独修改动画速度增加支持
-function hook.A.fni(origin, self, animation, time_offset, loop, fps, tick_length)
+function hook.A.fni(fni, self, animation, time_offset, loop, fps, tick_length)
     fps = animation.fps or self.fps
 
-    return origin(self, animation, time_offset, loop, fps, tick_length)
+    return fni(self, animation, time_offset, loop, fps, tick_length)
 end
 
 -- 增加图像资源覆盖路径
