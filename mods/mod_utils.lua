@@ -299,7 +299,11 @@ function mod_utils:a_db_reset(t)
             A:expand_frames(v)
         end
 
-        A.db[k] = v
+        if not A.db[k] then
+            A.db[k] = v
+        else
+            table.merge(A.db[k], v)
+        end
     end
 
     for _, v in ipairs(deleted_k) do
