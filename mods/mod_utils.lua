@@ -162,7 +162,7 @@ function mod_utils:get_debug_info(config)
     f(" | %-13s: %s\n", "version", config.version or "unknown")  -- 模组版本
     f("%-9s: %-20s", "by", config.by or "unknown")               -- 作者信息
     f(" | %-13s: %s\n", "game_version", game_version)            -- 兼容游戏版本
-    f("%-9s: %-20s\n", "priority", config.priority or "unknown") -- 优先级
+    f("%-9s: %-20d\n", "priority", config.priority) -- 优先级
     f("%-9s: %s\n", "desc", config.desc or "unknown")            -- 模组描述
     f("%-9s: %s", "url", config.url or "unknown")                -- 模组发布地址
 
@@ -183,7 +183,7 @@ function mod_utils:check_get_available_mods()
             -- 检查模组是否启用且路径存在
             if config.enabled and love.filesystem.exists(mod_data.path) then
                 -- 添加优先级信息到模组数据中
-                mod_data["priority"] = config.priority
+                mod_data["priority"] = config.priority or 0
                 table.insert(mods_data, mod_data)
             else
                 log.error("%s is disabled!", mod_data.name)
