@@ -50,8 +50,8 @@ function hook.A.fni(origin, self, animation, time_offset, loop, fps, tick_length
 end
 
 -- 增加图像资源覆盖路径
-function hook.I.load_atlas(origin, self, ref_scale, path, name, yielding)
-    origin(self, ref_scale, path, name, yielding)
+function hook.I.load_atlas(load_atlas, self, ref_scale, path, name, yielding)
+    load_atlas(self, ref_scale, path, name, yielding)
 
     for _, mod_data in ipairs(hook.asc_asc_mods_data) do
         local mod_assets_path = mod_data.path .. "/_assets/images"
@@ -75,8 +75,8 @@ function hook.I.load_atlas(origin, self, ref_scale, path, name, yielding)
 end
 
 -- 增加声音资源覆盖路径
-function hook.S.init(origin, self, path, overrides)
-    origin(self, path, overrides)
+function hook.S.init(init, self, path, overrides)
+    init(self, path, overrides)
 
     for _, mod_data in ipairs(hook.asc_mods_data) do
         local mod_assets_path = mod_data.path .. "/_assets/sounds"
@@ -160,8 +160,8 @@ function hook.S.init(origin, self, path, overrides)
     end
 end
 
-function hook.S.load_group(origin, self, name, yielding, filter)
-    origin(self, name, yielding, filter)
+function hook.S.load_group(load_group, self, name, yielding, filter)
+    load_group(self, name, yielding, filter)
 
     for _, mod_data in ipairs(hook.asc_mods_data) do
         local mod_files_path = mod_data.path .. "/_assets/sounds/files"
@@ -183,7 +183,7 @@ function hook.S.load_group(origin, self, name, yielding, filter)
             local origin_path = self.files_path
             self.files_path = mod_files_path
 
-            origin(self, name, yielding, filter)
+            load_group(self, name, yielding, filter)
 
             self.files_path = origin_path
         end
@@ -191,15 +191,15 @@ function hook.S.load_group(origin, self, name, yielding, filter)
 end
 
 -- 增加关卡数据覆盖路径
-function hook.LU.load_level(origin, store, name)
-    local level = origin(store, name)
+function hook.LU.load_level(load_level, store, name)
+    local level = load_level(store, name)
 
     for _, mod_data in ipairs(hook.asc_mods_data) do
         if FS.isDirectory(mod_data.path .. "/data/levels") then
             local origin_path = KR_PATH_GAME
             KR_PATH_GAME = mod_data.path
 
-            local new_level = origin(store, name)
+            local new_level = load_level(store, name)
 
             KR_PATH_GAME = origin_path
 
@@ -217,15 +217,15 @@ function hook.LU.load_level(origin, store, name)
 end
 
 -- 增加波次数据覆盖路径
-function hook.P.load(origin, self, name, visible_coords)
-    origin(self, name, visible_coords)
+function hook.P.load(load, self, name, visible_coords)
+    load(self, name, visible_coords)
 
     for _, mod_data in ipairs(hook.asc_mods_data) do
         if FS.isDirectory(mod_data.path .. "/data/waves") then
             local origin_path = KR_PATH_GAME
             KR_PATH_GAME = mod_data.path
 
-            origin(self, name, visible_coords)
+            load(self, name, visible_coords)
 
             KR_PATH_GAME = origin_path
         end
