@@ -1,13 +1,20 @@
 -- chunkname: @./mods/mod_main.lua
+
 local log = require("klua.log"):new("mod_main")
 local IS_KR5 = KR_GAME == "kr5"
 local FS = love.filesystem
-local mod_utils = require("mods.mod_utils")
-local mod_hook = require("mods.mod_hook")
 
-mod_utils.ignored_path = {
-    "_assets"
+local additional_paths = {
+    "mods/?.lua",
+    "mods/all/?.lua"
 }
+
+FS.setRequirePath(table.concat(additional_paths, ";") .. ";" .. FS.getRequirePath())
+package.path = FS.getRequirePath()
+
+local mod_hook = require("mod_hook")
+local mod_utils = require("mod_utils")
+local hook_utils = require("hook_utils")
 
 local mod_main = {}
 
@@ -18,13 +25,11 @@ function mod_main:init(director)
     mod_hook.desc_mods_data = descending_mods_data
     mod_hook.asc_mods_data = ascending_mods_data
 
-    local function director_init()
-        self:front_init()
-        director:init(main.params)
-        self:after_init()
-    end
+    self:front_init()
 
-    director_init()
+    director:init(main.params)
+    
+    self:after_init()
 end
 
 function mod_main:front_init(mods_data)
@@ -34,9 +39,6 @@ end
 --- 初始化所有已启用的模组
 ---@return nil
 function mod_main:after_init()
-    FS.setRequirePath("mods/?.lua" .. ";" .. FS.getRequirePath())
-    package.path = FS.getRequirePath()
-
     -- 正序加载所有模组，确保加载模块顺序正确
     for _, mod_data in ipairs(self.desc_mods_data) do
         -- 添加模组路径到package.path
@@ -44,17 +46,17 @@ function mod_main:after_init()
 
         -- 加载模组
         mod_data.module = require(mod_data.name)
+
+        mod_data.module.config = require(mod_utils.ppref .. mod_data.path .. ".config")
     end
 
     -- 倒序初始化模组，确保高优先级覆盖低优先级
     for _, mod_data in ipairs(self.asc_mods_data) do
-        local config = require(mod_utils.ppref .. mod_data.path .. ".config")
-
         -- 初始化模组
         mod_data.module:init()
 
         -- 打印模组加载信息
-        log.error(mod_utils:get_debug_info(config))
+        log.error(mod_utils:get_debug_info(mod_data.module.config))
     end
 
     mod_hook:after_init()

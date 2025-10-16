@@ -6,8 +6,9 @@ local S = require("sound_db")
 local LU = require("level_utils")
 local P = require("path_db")
 local FS = love.filesystem
-local mod_utils = require("mods.mod_utils")
-local HOOK = mod_utils.HOOK
+local mod_utils = require("mod_utils")
+local hook_utils = require("hook_utils")
+local HOOK = hook_utils.HOOK
 
 local A
 if IS_KR5 then
@@ -37,6 +38,7 @@ end
 function hook:after_init()
     HOOK(A, "fni", self.A.fni)
     HOOK(I, "load_atlas", self.I.load_atlas)
+    HOOK(I, "queue_load_atlas", self.I.queue_load_atlas)
     HOOK(S, "load_group", self.S.load_group)
     HOOK(LU, "load_level", self.LU.load_level)
     HOOK(P, "load", self.P.load)
@@ -53,23 +55,63 @@ end
 function hook.I.load_atlas(load_atlas, self, ref_scale, path, name, yielding)
     load_atlas(self, ref_scale, path, name, yielding)
 
-    for _, mod_data in ipairs(hook.asc_asc_mods_data) do
+    for _, mod_data in ipairs(hook.asc_mods_data) do
         local mod_assets_path = mod_data.path .. "/_assets/images"
 
         if FS.isDirectory(mod_assets_path) then
-            local group_file = mod_assets_path .. "/" .. name .. ".lua"
+            local lua_file = mod_assets_path .. "/" .. name .. ".lua"
 
-            if FS.isFile(group_file) then
+            if FS.isFile(lua_file) then
                 local name_scale = string.format("%s-%.6f", name, ref_scale)
 
                 if self.atlas_uses and self.atlas_uses[name_scale] then
                     self.atlas_uses[name_scale] = nil
                 end
+
+                self:preload_atlas(ref_scale, mod_assets_path, name)
+
+                log.info("Found atlas override %s in mod %s", lua_file, mod_data.name)
             end
+        end
+    end
+end
 
-            self:preload_atlas(ref_scale, mod_assets_path, name)
+-- 增加图像资源覆盖路径
+function hook.I.queue_load_atlas(queue_load_atlas, self, ref_scale, path, name)
+    queue_load_atlas(self, ref_scale, path, name)
 
-            log.info("Found atlas override %s in mod %s", group_file, mod_data.name)
+    for _, mod_data in ipairs(hook.asc_mods_data) do
+        local mod_assets_path = mod_data.path .. "/_assets/images"
+
+        if FS.isDirectory(mod_assets_path) then
+            local lua_file = mod_assets_path .. "/" .. name .. ".lua"
+
+            if FS.isFile(lua_file) then
+                local name_scale = string.format("%s-%.6f", name, ref_scale)
+                local removed_key = {}
+    
+                if self.atlas_uses and self.atlas_uses[name_scale] then
+                    self.atlas_uses[name_scale] = nil
+                end
+
+                for k, item in ipairs(self.load_queue) do
+                    local item_name = item[3]
+
+                    if item_name == name then
+                        table.insert(removed_key, k)
+                    end
+                end
+
+                for _, k in ipairs(removed_key) do
+                    log.debug("Removed load queue item key: %d, name: %s", k, name)
+
+                    self.load_queue[k] = nil
+                end
+    
+                queue_load_atlas(self, ref_scale, mod_assets_path, name)
+    
+                log.info("Found atlas override %s in mod %s", group_file, mod_data.name)
+            end
         end
     end
 end

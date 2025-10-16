@@ -1,7 +1,8 @@
--- chunkname: @./mods/mod_utils.lua
+-- chunkname: @./mods/all/mod_utils.lua
 local log = require("klua.log"):new("mod_utils")
 local IS_KR5 = KR_GAME == "kr5"
 local FS = love.filesystem
+local hook_utils = require("hook_utils")
 
 local A
 if IS_KR5 then
@@ -11,6 +12,14 @@ else
 end
 
 local mod_utils = {}
+
+mod_utils.ignored_path = {
+    "_assets"
+}
+
+mod_utils.not_mod_path = {
+    "all"
+}
 
 mod_utils.ppref = ""
 
@@ -33,8 +42,9 @@ mod_utils.auto_table_mt = {
 ---
 --- 返回一个包含子目录信息的表，每个元素包含name(子目录名)和path(完整路径)
 ---@param path string 要扫描的目录路径
+---@param filter_fn function 过滤函数
 ---@return table 包含子目录信息的表
-function mod_utils:get_subdirs(path)
+function mod_utils:get_subdirs(path, filter_fn)
     -- 获取目录下所有文件和子目录
     local files = FS.getDirectoryItems(path)
 
@@ -44,6 +54,7 @@ function mod_utils:get_subdirs(path)
     if not files then
         log.error("Path does not exist: %s", path)
         return {}
+
         -- 检查目录是否为空
     elseif #files == 0 then
         log.debug("No files found in path: %s", path)
@@ -55,7 +66,7 @@ function mod_utils:get_subdirs(path)
         local filepath = path .. "/" .. file
 
         -- 检查是否为目录
-        if FS.isDirectory(filepath) then
+        if not filter_fn or filter_fn(file, filepath) and not table.contains(self.ignored_path, file) and FS.isDirectory(filepath) then
             -- 将目录信息添加到结果表中
             table.insert(folders, {
                 name = file,    -- 目录名称
@@ -84,13 +95,9 @@ function mod_utils:add_path(mod_data)
         f("?.lua") -- 添加模组根目录的lua文件搜索路径
     }
 
-    local mod_dirs = self:get_subdirs(mod_data.path)
-
     -- 遍历模组下的所有目录
-    for _, dir in ipairs(mod_dirs) do
-        if table.contains(self.ignored_path, dir.name) then
-            log.debug("Ignored mod path: %s", dir.path)
-        elseif dir.name == "data" then
+    for _, dir in ipairs(self:get_subdirs(mod_data.path)) do
+        if dir.name == "data" then
             for _, data_dir in ipairs(self:get_subdirs(dir.path)) do
                 local kui_db
 
@@ -158,13 +165,13 @@ function mod_utils:get_debug_info(config)
 
     -- 构建模组信息标题
     f("------------------- LOADED_MOD: %s -----------------------\n", config.name)
-    f("%-9s: %-20s", "name", config.name or "unknown")           -- 模组名称
-    f(" | %-13s: %s\n", "version", config.version or "unknown")  -- 模组版本
-    f("%-9s: %-20s", "by", config.by or "unknown")               -- 作者信息
-    f(" | %-13s: %s\n", "game_version", game_version)            -- 兼容游戏版本
-    f("%-9s: %-20d\n", "priority", config.priority) -- 优先级
-    f("%-9s: %s\n", "desc", config.desc or "unknown")            -- 模组描述
-    f("%-9s: %s", "url", config.url or "unknown")                -- 模组发布地址
+    f("%-9s: %-20s", "name", config.name or "unknown")          -- 模组名称
+    f(" | %-13s: %s\n", "version", config.version or "unknown") -- 模组版本
+    f("%-9s: %-20s", "by", config.by or "unknown")              -- 作者信息
+    f(" | %-13s: %s\n", "game_version", game_version)           -- 兼容游戏版本
+    f("%-9s: %-20d\n", "priority", config.priority)             -- 优先级
+    f("%-9s: %s\n", "desc", config.desc or "unknown")           -- 模组描述
+    f("%-9s: %s", "url", config.url or "unknown")               -- 模组发布地址
 
     return o
 end
@@ -174,7 +181,11 @@ end
 function mod_utils:check_get_available_mods()
     local mods_data = {}
 
-    for _, mod_data in ipairs(self:get_subdirs("mods")) do
+    local mod_subdirs = self:get_subdirs("mods", function(name, path)
+        return not table.contains(self.not_mod_path, name)
+    end)
+
+    for _, mod_data in ipairs(mod_subdirs) do
         -- 加载模组配置文件
         local config = require(self.ppref .. mod_data.path .. ".config")
 
@@ -198,7 +209,7 @@ function mod_utils:check_get_available_mods()
     local ascending = {}
 
     if #mods_data > 0 then
-        -- 根据优先级对模组进行降序排序（优先级高的先加载）
+        -- 根据优先级对模组进行降序排序
         table.sort(mods_data, function(a, b)
             return a.priority > b.priority
         end)
@@ -210,46 +221,6 @@ function mod_utils:check_get_available_mods()
     end
 
     return mods_data, ascending
-end
-
---[[
-    通用工具函数
---]]
-
---- 替换原函数
---- @param obj table 对象
---- @param fn_name string 函数名
---- @param handler function 替换的函数
---- @return nil
-function mod_utils.HOOK(obj, fn_name, handler)
-    obj._hook_origin_fn = obj._hook_origin_fn or {}
-
-    obj._hook_origin_fn[fn_name] = obj._hook_origin_fn[fn_name] or obj[fn_name]
-
-    obj[fn_name] = function(...)
-        return handler(obj._hook_origin_fn[fn_name], ...)
-    end
-end
-
---- 移除 hook
---- @param obj table 对象
---- @param fn_name string 函数名
---- @return nil
-function mod_utils.UNHOOK(obj, fn_name)
-    if not obj._hook_origin_fn then
-        return
-    end
-
-    local hook_fn = obj._hook_origin_fn[fn_name]
-
-    if not hook_fn then
-        return
-    end
-
-    obj[fn_name] = hook_fn
-    obj._hook_origin_fn[fn_name] = nil
-
-    log.debug("Unhooked function: %s.%s", tostring(obj), fn_name)
 end
 
 ---根据表修改指定动画
