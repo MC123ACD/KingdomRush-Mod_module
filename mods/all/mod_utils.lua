@@ -294,7 +294,6 @@ signal = require("hump.signal")
 km = require("klua.macros")
 SH = require("klove.shader_db")
 V = require("klua.vector")
-v = V.v
 class = require("middleclass")
 bit = require("bit")
 band = bit.band
