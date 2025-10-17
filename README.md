@@ -28,7 +28,17 @@ mods/
         └── modules.lua     -- 模块
 ```
 
-### 2. 导入模块
+### 2. 安装模块
+#### 方法 1.
+1. 将游戏根目录的 `main` 拖入到安装模块脚本文件夹
+2. 运行脚本
+3. 将 `main` 拖回游戏根目录即可
+
+注：
+1. 对于已打包的游戏，需要打开 exe 压缩包操作
+2. 脚本会修改 main 文件，源文件备份在 output 文件夹内
+
+#### 方法 2.
 将 `main` 的 `love.update`（前三代为 `load_director`） 函数的 `director:init(main.params)` 字段修改为：
 ```lua
 require("mods.mod_main"):init(director)

@@ -1,6 +1,0 @@
-*
-!.gitignore
-!/mods/
-!/mods/**
-!README.md
-!main.lua
