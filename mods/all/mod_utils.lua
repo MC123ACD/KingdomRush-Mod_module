@@ -288,9 +288,6 @@ end
 以下是将一些模块与函数设为全局便于使用
 --]]
 
-if not IS_KR5 then
-    require("gg_views_custom")
-end
 require("klove.kui")
 require("klua.table")
 signal = require("hump.signal")
@@ -313,6 +310,8 @@ U = require("utils")
 
 if IS_KR5 then
     balance = require("data.balance.balance")
+else
+    require("gg_views_custom")
 end
 
 --- 帧转秒
@@ -332,8 +331,7 @@ end
 --- 创建模板
 --- @param name string 模板名
 --- @param ref string 派生的模板
---- @return table
---- @see E:register_t
+--- @return table 模板引用
 function RT(name, ref)
     return E:register_t(name, ref)
 end
@@ -342,7 +340,6 @@ end
 --- @param name string 模板名
 --- @param ... string 组件名
 --- @return nil
---- @see E:add_comps
 function AC(name, ...)
     return E:add_comps(name, ...)
 end
@@ -350,7 +347,6 @@ end
 --- 深拷贝组件
 --- @param c_name string 组件名
 --- @return table
---- @see E:clone_c
 function CC(c_name)
     return E:clone_c(c_name)
 end
@@ -358,35 +354,31 @@ end
 --- 索引模板
 --- @param name string 模板名
 --- @return table
---- @see E:get_template
 function T(name)
     return E:get_template(name)
 end
 
 --- 创建实体
 --- @param t string 模板名
---- @return table
---- @see E:create_entity
+--- @return table 实体引用
 function create_entity(t)
     return E:create_entity(t)
 end
 
---- 将实体放到插入队列
+--- 将实体增加到插入队列
 --- @param store table game.store
 --- @param e table 实体表
 --- @return nil
---- @see simulation:queue_insert_entity
 function queue_insert(store, e)
-    simulation:queue_insert_entity(e)
+    return simulation:queue_insert_entity(e)
 end
 
 --- 将实体加入移除队列
 --- @param store table game.store
 --- @param e table 实体表
 --- @return nil
---- @see simulation:queue_remove_entity
 function queue_remove(store, e)
-    simulation:queue_remove_entity(e)
+    return simulation:queue_remove_entity(e)
 end
 
 --- 将伤害实体加入伤害队列
@@ -394,7 +386,7 @@ end
 --- @param damage table 实体表
 --- @return nil
 function queue_damage(store, damage)
-    table.insert(store.damage_queue, damage)
+    return table.insert(store.damage_queue, damage)
 end
 
 return mod_utils

@@ -8,7 +8,8 @@ def run_decompiler(file_path):
     subprocess.run([
         "luajit-decompiler-v2.exe",
         file_path,
-        "-s"
+        "-s",
+        "-f"
     ], capture_output=True)
 
 def write_main_file(input_file):
@@ -20,20 +21,23 @@ def write_main_file(input_file):
 def main():
     run_decompiler("main.lua")
 
+    if not os.path.exists("output"):
+        os.makedirs("output")
+
     main_path = os.path.join("output", "main.lua")
 
     if not os.path.exists(main_path):
         shutil.copy("main.lua", main_path)
+    
+    with open(main_path, "r", encoding="utf-8") as f:
+        input_file = f.read()
 
-    try:
-        with open(main_path, "r", encoding="utf-8") as f:
-            input_file = f.read()
-
-            write_main_file(input_file)
-    except Exception as e:
-        traceback.print_exc()
+        write_main_file(input_file)
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        traceback.print_exc()
 
     input("程序运行完毕, 按回车键退出> ")
