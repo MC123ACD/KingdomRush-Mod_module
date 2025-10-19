@@ -28,7 +28,7 @@ function mod_main:init(director)
     self:front_init()
 
     director:init(main.params)
-    
+
     self:after_init()
 end
 

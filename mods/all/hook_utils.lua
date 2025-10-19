@@ -19,8 +19,8 @@ function hook_utils.HOOK(obj, fn_name, handler, priority)
 
         -- 2.1 保存原始函数
         obj.__hooks[fn_name] = {
-            [fn_name] = obj[fn_name], -- 保存原函数
-            hooks = {}            -- 钩子处理器列表
+            original = obj[fn_name], -- 保存原函数
+            hooks = {}               -- 钩子处理器列表
         }
 
         -- 2.2 创建新的包装函数
@@ -44,10 +44,11 @@ function hook_utils:execute_hook_chain(obj, fn_name, ...)
     -- 获取这个函数的钩子信息
     local hook_info = obj.__hooks[fn_name]
     local hooks = hook_info.hooks
+    local original = hook_info.original
 
     -- 情况1: 没有钩子，直接调用原函数
     if #hooks == 0 then
-        return hook_info[fn_name](obj, ...)
+        return original(obj, ...)
     end
 
     -- 情况2: 有钩子，创建执行链
@@ -58,7 +59,7 @@ function hook_utils:execute_hook_chain(obj, fn_name, ...)
     local function call_next(...)
         if current_index > #hooks then
             -- 所有钩子都执行完了，调用原始函数
-            return hook_info[fn_name](...)
+            return original(...)
         else
             -- 执行当前钩子，并递增进度
             local current_handler = hooks[current_index].handler
@@ -101,7 +102,7 @@ function hook_utils.CALL_ORIGINAL(obj, fn_name, ...)
         return obj[fn_name](...)
     end
 
-    return obj.__hooks[fn_name][fn_name](obj, ...)
+    return obj.__hooks[fn_name].original(obj, ...)
 end
 
 return hook_utils

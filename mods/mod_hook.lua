@@ -89,7 +89,7 @@ function hook.I.queue_load_atlas(queue_load_atlas, self, ref_scale, path, name)
             if FS.isFile(lua_file) then
                 local name_scale = string.format("%s-%.6f", name, ref_scale)
                 local removed_key = {}
-    
+
                 if self.atlas_uses and self.atlas_uses[name_scale] then
                     self.atlas_uses[name_scale] = nil
                 end
@@ -107,9 +107,9 @@ function hook.I.queue_load_atlas(queue_load_atlas, self, ref_scale, path, name)
 
                     self.load_queue[k] = nil
                 end
-    
+
                 queue_load_atlas(self, ref_scale, mod_assets_path, name)
-    
+
                 log.info("Found atlas override %s in mod %s", group_file, mod_data.name)
             end
         end
