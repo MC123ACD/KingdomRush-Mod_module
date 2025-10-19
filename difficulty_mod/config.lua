@@ -37,7 +37,7 @@ return {
     skill_cooldown_factor = 1,
 
     -- 防御塔价格倍数
-    tower_price_factor = 1
+    tower_price_factor = 1,
 
     --[[
         机制方面设置
