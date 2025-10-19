@@ -46,6 +46,14 @@ function hook.game.update(update, self, dt)
 	if config.is_down_key and not (key_is_down(config.up_speed_key) or key_is_down(config.down_speed_key)) then
 		self.DBG_TIME_MULT = 1
 	end
+
+	if not IS_KR5 then
+		if self.DBG_TIME_MULT < 1 then
+			local new_dt = dt * self.DBG_TIME_MULT
+
+			self.simulation:update(new_dt)
+		end
+	end
 end
 
 return hook
