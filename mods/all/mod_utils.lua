@@ -288,7 +288,9 @@ end
 以下是将一些模块与函数设为全局便于使用
 --]]
 
-require("gg_views_custom")
+if not IS_KR5 then
+    require("gg_views_custom")
+end
 require("klove.kui")
 require("klua.table")
 signal = require("hump.signal")
