@@ -3,14 +3,15 @@ local log = require("klua.log"):new("difficulty_mod")
 local mod_utils = require("mod_utils")
 local hook_utils = require("hook_utils")
 local HOOK = hook_utils.HOOK
-local screen_map_dif = require("screen_map_dif")
-local screen_map = require("screen_map")
+local modify_dif = require("modify_dif")
 local S = require("sound_db")
 local GS = require("game_settings")
+local sys = require("systems")
+local W = require("wave_db")
+local P = require("path_db")
 local game = require("game")
 local game_gui = require("game_gui")
 local DI = require("difficulty")
-balance = require("balance.balance")
 
 local function v(v1, v2)
 	return {
@@ -27,42 +28,31 @@ local hook = {}
 setmetatable(hook, mod_utils.auto_table_mt)
 
 function hook:init()
-	-- HOOK(E, "load", self.E.load)
-	HOOK(screen_map, "init", self.screen_map.init)
+	modify_dif:init(hook.config)
+
+	HOOK(E, "load", self.E.load)
+	HOOK(W, "load", self.W.load)
+	HOOK(P, "load", self.P.load)
+	--HOOK(sys)
 end
 
 function hook.E.load(load, self)
-    package.loaded["game_scripts-1"] = nil
-    package.loaded["game_scripts-2"] = nil
-    package.loaded["game_scripts-4"] = nil
-    package.loaded["game_scripts-5"] = nil
-
 	load(self)
+
+	modify_dif:templates()
+	modify_dif:game_settings()
 end
 
--- 修改地图按钮
-function hook.screen_map.init(init, self, w, h, done_callback)
-	init(self, w, h, done_callback)
+function hook.W.load(load, self, level_name, game_mode, wave_ss_data)
+	load(self, level_name, game_mode, wave_ss_data)
 
-	local sw = self.sw
-	local sh = self.sh
+	modify_dif:waves()
+end
 
-	self.option_dif_panel = OptionsDifficultyView:new(sw, sh)
+function hook.P.load(load, self, name, visible_coords)
+	load(self, name, visible_coords)
 
-	self.window:add_child(self.option_dif_panel)
-
-	-- 设置按钮
-	self.o_dif_button = GGButton:new("map_configBtn_0001", "map_configBtn_0002", "map_configBtn_0003")
-
-	self.o_dif_button.anchor = v(self.o_dif_button.size.x / 2, self.o_dif_button.size.y / 2)
-	self.o_dif_button.pos = v(80, 840)
-
-	function self.o_dif_button.on_click(this, button, x, y)
-		S:queue("GUIButtonCommon")
-		self.option_dif_panel:show()
-	end
-
-	self.window:add_child(self.o_dif_button)
+	modify_dif:paths()
 end
 
 return hook
