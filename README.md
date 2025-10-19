@@ -44,7 +44,10 @@ mods/
 require("mods.mod_main"):init(director)
 ```
 
-### 3. 配置示例
+### 3. 增加第三方模组
+将模组目录放入 mods 目录即可
+
+### 4. 配置示例
 ```lua
 -- config.lua
 return {
@@ -59,7 +62,7 @@ return {
 }
 ```
 
-### 4. 模块实现
+### 5. 模块实现
 ```lua
 -- your_mod.lua
 local M = {}
