@@ -19,17 +19,23 @@ local hook_utils = require("hook_utils")
 local mod_main = {}
 
 function mod_main:init(director)
-    local descending_mods_data, ascending_mods_data = mod_utils:check_get_available_mods()
+    local config = require("config")
+
+    local descending_mods_data, ascending_mods_data = mod_utils:check_get_available_mods(config)
     self.desc_mods_data = descending_mods_data
     self.asc_mods_data = ascending_mods_data
     mod_hook.desc_mods_data = descending_mods_data
     mod_hook.asc_mods_data = ascending_mods_data
 
-    self:front_init()
+    if config.enabled then
+        self:front_init()
 
-    director:init(main.params)
+        director:init(main.params)
 
-    self:after_init()
+        self:after_init()
+    else
+        director:init(main.params)
+    end
 end
 
 function mod_main:front_init(mods_data)

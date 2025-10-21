@@ -178,7 +178,7 @@ end
 
 ---检查并返回包含可用模组的表
 ---@return table 降序排序的表, table 升序排序的表
-function mod_utils:check_get_available_mods()
+function mod_utils:check_get_available_mods(main_config)
     local mods_data = {}
 
     local mod_subdirs = self:get_subdirs("mods", function(name, path)
