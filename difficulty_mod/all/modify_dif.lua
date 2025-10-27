@@ -63,18 +63,24 @@ function modify_dif:game_settings()
     local config = self.config
 
     -- 血量倍数
-    for i = 1, #GS.difficulty_enemy_hp_max_factor do
-        GS.difficulty_enemy_hp_max_factor[i] = config.enemy_hp_max_factor
+    if config.enemy_hp_max_factor ~= 1 then
+        for i = 1, #GS.difficulty_enemy_hp_max_factor do
+            GS.difficulty_enemy_hp_max_factor[i] = config.enemy_hp_max_factor
+        end
     end
 
     -- 速度倍数
-    for i = 1, #GS.difficulty_enemy_speed_factor do
-        GS.difficulty_enemy_speed_factor[i] = config.enemy_speed_factor
+    if config.enemy_speed_factor ~= 1 then
+        for i = 1, #GS.difficulty_enemy_speed_factor do
+            GS.difficulty_enemy_speed_factor[i] = config.enemy_speed_factor
+        end
     end
 
     -- 英雄经验倍数
-    for i = 1, #GS.hero_xp_gain_per_difficulty_mode do
-        GS.hero_xp_gain_per_difficulty_mode[i] = config.hero_xp_factor
+    if config.hero_xp_factor ~= 1 then
+        for i = 1, #GS.hero_xp_gain_per_difficulty_mode do
+            GS.hero_xp_gain_per_difficulty_mode[i] = config.hero_xp_factor
+        end
     end
 end
 
@@ -94,10 +100,10 @@ function modify_dif:waves()
             for _, spawn in ipairs(spawns) do
                 spawn.interval = spawn.interval * config.spawn_interval_factor
                 spawn.interval_next = spawn.interval_next * config.spawn_interval_factor
-                spawn.max = spawn.max * config.spawn_count_factor
+                spawn.max = math.ceil(spawn.max * config.spawn_count_factor)
 
                 if spawn.max_same then
-                    spawn.max_same = spawn.max_same * config.spawn_count_factor
+                    spawn.max_same = math.ceil(spawn.max_same * config.spawn_count_factor)
                 end
             end
         end

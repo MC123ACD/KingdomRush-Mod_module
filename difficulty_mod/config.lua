@@ -19,9 +19,8 @@ return {
     wave_interval_factor = 1,
     -- 生成敌人间隔倍数
     spawn_interval_factor = 1,
-    -- 敌人数量倍数
+    -- 敌人数量倍数（向上取整）
     spawn_count_factor = 1,
-
     -- 敌人赏金倍数
     enemy_gold_factor = 1,
     -- 敌人血量倍数
@@ -44,5 +43,5 @@ return {
     --]]
 
     -- 是否启用相反路径
-    reversed_path = true,
+    reversed_path = false,
 }
