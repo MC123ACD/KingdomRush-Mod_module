@@ -53,6 +53,10 @@ function mod_main:after_init()
         -- 加载模组
         mod_data.module = require(mod_data.name)
 
+        if type(mod_data.module) ~= "table" then
+            error(string.format("Must return table, mod: %s", mod_data.name))
+        end
+
         mod_data.module.config = require(mod_utils.ppref .. mod_data.path .. ".config")
     end
 
