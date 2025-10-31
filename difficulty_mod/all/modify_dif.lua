@@ -10,6 +10,27 @@ function modify_dif:init(config)
     self.config = config
 end
 
+function modify_dif.apply_factor(t, k, factor)
+    if factor == 1 or not t[k] then
+        return
+    end
+
+    local value = t[k]
+    local value_type = type(value)
+
+    if value_type == "table" then
+        for i = 1, #value do
+            local v = value[i]
+
+            value[i] = v * factor
+        end
+    elseif value_type == "number" then
+        t[k] = math.ceil(value * factor)
+    end
+
+    return true
+end
+
 function modify_dif:templates()
     local config = self.config
 
@@ -17,33 +38,44 @@ function modify_dif:templates()
     local enemy_templates = E:filter_templates("enemy")
 
     for _, e in pairs(enemy_templates) do
+        -- 赏金
         if e.enemy.gold then
-            e.enemy.gold = e.enemy.gold * config.enemy_gold_factor
+            if band(e.vis.flags, F_FLYING) == 0 then
+                self.apply_factor(e.enemy, "gold", config.enemy_gold_factor)
+            else
+                self.apply_factor(e.enemy, "gold", config.fly_enemy_gold_factor)
+            end
+        end
+
+        -- 血量
+        if e.health and e.health.hp_max then
+            if band(e.vis.flags, F_FLYING) == 0 then
+                self.apply_factor(e.health, "hp_max", config.enemy_hp_max_factor)
+            else
+                self.apply_factor(e.health, "hp_max", config.fly_enemy_hp_max_factor)
+            end
+        end
+
+        -- 速度
+        if e.motion and e.motion.max_speed then
+            if band(e.vis.flags, F_FLYING) == 0 then
+                self.apply_factor(e.motion, "max_speed", config.enemy_speed_factor)
+            else
+                self.apply_factor(e.motion, "max_speed", config.fly_enemy_speed_factor)
+            end
         end
     end
 
     -- 英雄
     local hero_templates = E:filter_templates("hero")
 
-    local function apply_cooldown_factor(skill, factor)
-        if type(skill.cooldown) == "table" then
-            for _, cooldown in pairs(skill.cooldown) do
-                cooldown = cooldown * factor
-            end
-        elseif type(skill.cooldown) == "number" then
-            skill.cooldown = skill.cooldown * factor
-        end
-    end
-
     for _, h in pairs(hero_templates) do
         for k, skill in pairs(h.hero.skills) do
             if skill.cooldown then
-                -- 大招
                 if k == "ultimate" then
-                    apply_cooldown_factor(skill, config.ultimate_cooldown_factor)
+                    self.apply_factor(skill, "ultimate", config.ultimate_cooldown_factor)
                 else
-                    -- 普通技能
-                    apply_cooldown_factor(skill, config.skill_cooldown_factor)
+                    self.apply_factor(skill, k, config.skill_cooldown_factor)
                 end
             end
         end
@@ -54,7 +86,7 @@ function modify_dif:templates()
     -- 防御塔
     for _, t in pairs(tower_templates) do
         if t.tower.price then
-            t.tower.price = t.tower.price * config.tower_price_factor
+            self.apply_factor(t.tower, "price", config.tower_price_factor)
         end
     end
 end
@@ -63,16 +95,16 @@ function modify_dif:game_settings()
     local config = self.config
 
     -- 血量倍数
-    if config.enemy_hp_max_factor ~= 1 then
+    if config.enemy_hp_max_factor ~= 1 or config.fly_enemy_speed_factor ~= 1 then
         for i = 1, #GS.difficulty_enemy_hp_max_factor do
-            GS.difficulty_enemy_hp_max_factor[i] = config.enemy_hp_max_factor
+            GS.difficulty_enemy_hp_max_factor[i] = 1
         end
     end
 
     -- 速度倍数
-    if config.enemy_speed_factor ~= 1 then
+    if config.enemy_speed_factor ~= 1 or config.fly_enemy_speed_factor ~= 1 then
         for i = 1, #GS.difficulty_enemy_speed_factor do
-            GS.difficulty_enemy_speed_factor[i] = config.enemy_speed_factor
+            GS.difficulty_enemy_speed_factor[i] = 1
         end
     end
 
