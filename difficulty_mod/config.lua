@@ -17,7 +17,8 @@ return {
     cash_factor = 1,
     -- 波次间隔倍数
     wave_interval_factor = 1,
-    -- 生成敌人间隔倍数
+    
+    -- 敌人生成间隔倍数
     spawn_interval_factor = 1,
     -- 敌人数量倍数（向上取整）
     spawn_count_factor = 1,
@@ -30,6 +31,8 @@ return {
     -- 敌人冷却倍数
     enemy_cooldown_factor = 1,
 
+    -- 飞行敌人生成间隔倍数
+    fly_spawn_interval_factor = 1,
     -- 飞行敌人数量倍数（向上取整）
     fly_spawn_count_factor = 1,
     -- 飞行敌人赏金倍数（向上取整）
@@ -41,6 +44,8 @@ return {
     -- 飞行敌人冷却倍数
     fly_enemy_cooldown_factor = 1,
     
+    -- Boss敌人生成间隔倍数
+    boss_spawn_interval_factor = 1,
     -- Boss敌人数量倍数（向上取整）
     boss_spawn_count_factor = 1,
     -- Boss敌人血量倍数（向上取整）
