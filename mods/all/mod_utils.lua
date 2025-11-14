@@ -66,7 +66,7 @@ function mod_utils.get_subdirs(path, filter_fn)
         local filepath = path .. "/" .. file
 
         -- 检查是否为目录
-        if not filter_fn or filter_fn(file, filepath) and not table.contains(self.ignored_path, file) and FS.isDirectory(filepath) then
+        if not filter_fn or filter_fn(file, filepath) and not table.contains(ignored_path, file) and FS.isDirectory(filepath) then
             -- 将目录信息添加到结果表中
             table.insert(folders, {
                 name = file,    -- 目录名称
