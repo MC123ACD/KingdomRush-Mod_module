@@ -21,7 +21,7 @@ local mod_main = {}
 function mod_main:init(director)
     local config = require("config")
 
-    local descending_mods_data, ascending_mods_data = mod_utils:check_get_available_mods(config)
+    local descending_mods_data, ascending_mods_data = mod_utils.check_get_available_mods(config)
     self.desc_mods_data = descending_mods_data
     self.asc_mods_data = ascending_mods_data
     mod_hook.desc_mods_data = descending_mods_data
@@ -66,7 +66,7 @@ function mod_main:after_init()
         mod_data.module:init()
 
         -- 打印模组加载信息
-        log.error(mod_utils:get_debug_info(mod_data.module.config))
+        log.error(mod_utils.get_debug_info(mod_data.module.config))
     end
 
     mod_hook:after_init()
