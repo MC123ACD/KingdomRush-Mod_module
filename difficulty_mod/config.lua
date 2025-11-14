@@ -27,20 +27,35 @@ return {
     enemy_hp_max_factor = 1,
     -- 敌人速度倍数
     enemy_speed_factor = 1,
+    -- 敌人冷却倍数
+    enemy_cooldown_factor = 1,
 
+    -- 飞行敌人数量倍数（向上取整）
+    fly_spawn_count_factor = 1,
     -- 飞行敌人赏金倍数（向上取整）
     fly_enemy_gold_factor = 1,
     -- 飞行敌人血量倍数（向上取整）
     fly_enemy_hp_max_factor = 1,
     -- 飞行敌人速度倍数
     fly_enemy_speed_factor = 1,
+    -- 飞行敌人冷却倍数
+    fly_enemy_cooldown_factor = 1,
+    
+    -- Boss敌人数量倍数（向上取整）
+    boss_spawn_count_factor = 1,
+    -- Boss敌人血量倍数（向上取整）
+    boss_enemy_hp_max_factor = 1,
+    -- Boss敌人速度倍数
+    boss_enemy_speed_factor = 1,
+    -- Boss敌人冷却倍数
+    boss_enemy_cooldown_factor = 1,
 
     -- 英雄经验倍数
     hero_xp_factor = 1,
     -- 英雄大招冷却倍数
     ultimate_cooldown_factor = 1,
     -- 英雄技能冷却倍数
-    skill_cooldown_factor = 1,
+    hero_skill_cooldown_factor = 1,
 
     -- 防御塔价格倍数（向上取整）
     tower_price_factor = 1,
