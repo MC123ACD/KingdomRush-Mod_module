@@ -46,7 +46,7 @@ return {
     
     -- Boss敌人生成间隔倍数
     boss_spawn_interval_factor = 1,
-    -- Boss敌人数量倍数（向上取整）
+    -- Boss敌人数量倍数（向上取整，仅支持场外出场的Boss）
     boss_spawn_count_factor = 1,
     -- Boss敌人血量倍数（向上取整）
     boss_enemy_hp_max_factor = 1,

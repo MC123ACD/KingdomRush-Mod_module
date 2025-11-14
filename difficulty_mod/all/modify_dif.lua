@@ -12,13 +12,13 @@ function modify_dif:init(config)
 end
 
 function modify_dif.check_flags_get_factor(flags, config_key)
-    config = self.config
+    config = modify_dif.config
 
     local factor = config[config_key]
     local matched_flags = 0
 
     if band(flags, F_BOSS) ~= 0 then
-        factor = config.["boss_" .. config_key]
+        factor = config["boss_" .. config_key]
         matched_flags = bor(matched_flags, F_BOSS)
     elseif band(flags, F_FLYING) ~= 0 then
         factor = config["fly_" .. config_key]
