@@ -48,7 +48,7 @@ function mod_main:after_init()
     -- 正序加载所有模组，确保加载模块顺序正确
     for _, mod_data in ipairs(self.desc_mods_data) do
         -- 添加模组路径到package.path
-        mod_utils:add_path(mod_data)
+        mod_utils.add_path(mod_data)
 
         -- 加载模组
         mod_data.module = require(mod_data.name)
@@ -57,7 +57,7 @@ function mod_main:after_init()
             error(string.format("Must return table, mod: %s", mod_data.name))
         end
 
-        mod_data.module.config = require(mod_utils.ppref .. mod_data.path .. ".config")
+        mod_data.module.config = require(mod_utils.get_ppref() .. mod_data.path .. ".config")
     end
 
     -- 倒序初始化模组，确保高优先级覆盖低优先级

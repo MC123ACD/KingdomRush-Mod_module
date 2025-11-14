@@ -38,6 +38,10 @@ mod_utils.auto_table_mt = {
     end
 }
 
+function mod_utils.get_ppref()
+    return ppref
+end
+
 --- 获取指定路径下的所有子目录名
 ---
 --- 返回一个包含子目录信息的表，每个元素包含name(子目录名)和path(完整路径)
