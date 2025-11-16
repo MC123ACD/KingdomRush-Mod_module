@@ -379,9 +379,7 @@ storage = require("storage")
 SU = require("script_utils")
 U = require("utils")
 
-if IS_KR5 then
-    balance = require("data.balance.balance")
-else
+if not IS_KR5 then
     require("gg_views_custom")
 end
 
