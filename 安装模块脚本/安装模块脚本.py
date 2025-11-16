@@ -1,8 +1,9 @@
-import os, traceback, subprocess, shutil
+import traceback, subprocess, shutil
+from pathlib import Path
 
-base_dir = os.path.dirname(os.path.abspath(__file__))
-input_path = os.path.join(base_dir, "input")
-output_path = os.path.join(base_dir, "output")
+
+input_path = Path("input")
+output_path = Path("output")
 
 def run_decompiler(file_path):
     subprocess.run([
@@ -13,7 +14,7 @@ def run_decompiler(file_path):
     ], capture_output=True)
 
 def write_main_file(input_file):
-    input_file = input_file.replace("director:init(main.params)", "require(\"mods.mod_main\"):init(director)")
+    input_file = input_file.replace("director:init(main.params)", "require(\"mods.mod_main\"):init(director)", 1)
 
     with open("main.lua", "w", encoding="utf-8") as f:
         f.write(input_file)
@@ -21,12 +22,12 @@ def write_main_file(input_file):
 def main():
     run_decompiler("main.lua")
 
-    if not os.path.exists("output"):
-        os.makedirs("output")
+    if not output_path.exists():
+        output_path.mkdir()
 
-    main_path = os.path.join("output", "main.lua")
+    main_path = output_path / "main.lua"
 
-    if not os.path.exists(main_path):
+    if not main_path.exists():
         shutil.copy("main.lua", main_path)
     
     with open(main_path, "r", encoding="utf-8") as f:
