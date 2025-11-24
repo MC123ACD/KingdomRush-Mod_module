@@ -67,7 +67,7 @@ return {
 -- your_mod.lua
 local M = {}
 
-function M:init()
+function M:init(mod_data)   -- mod_data 用于接收模组数据
     -- 模块初始化逻辑
     -- 在此处实现HOOK、事件监听等功能
     HOOK(E, "load", self.E_load)
@@ -80,6 +80,15 @@ function M.E_load(origin, self, ...)
 end
 
 return M
+```
+
+#### mod_data 内容
+```lua
+mod_data = {
+    config = 配置文件的内容: table,
+    path = 完整路径: string,
+    name = 名称: string
+}
 ```
 
 ## 开发规范

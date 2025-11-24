@@ -46,9 +46,10 @@ end
 ---
 --- 返回一个包含子目录信息的表，每个元素包含name(子目录名)和path(完整路径)
 ---@param path string 要扫描的目录路径
+---@param is_mods boolean 是否为mods目录
 ---@param filter_fn function 过滤函数
 ---@return table 包含子目录信息的表
-function mod_utils.get_subdirs(path, filter_fn)
+function mod_utils.get_subdirs(path, is_mods, filter_fn)
     -- 获取目录下所有文件和子目录
     local files = FS.getDirectoryItems(path)
 
@@ -65,17 +66,30 @@ function mod_utils.get_subdirs(path, filter_fn)
     end
 
     -- 遍历目录下的所有项目
-    for _, file in ipairs(files) do
+    for i = 1, #files do
+        local file = files[i]
+
         -- 构建完整文件路径
         local filepath = path .. "/" .. file
 
         -- 检查是否为目录
         if not filter_fn or filter_fn(file, filepath) and not table.contains(ignored_path, file) and FS.isDirectory(filepath) then
-            -- 将目录信息添加到结果表中
-            table.insert(folders, {
-                name = file,    -- 目录名称
-                path = filepath -- 目录完整路径
-            })
+            if is_mods then
+                local config = require(ppref .. filepath .. ".config")
+                
+                -- 将目录信息添加到结果表中
+                table.insert(folders, {
+                    name = file,        -- 目录名称
+                    path = filepath,    -- 目录完整路径
+                    config = config     -- 配置
+                })
+            else
+                -- 将目录信息添加到结果表中
+                table.insert(folders, {
+                    name = file,     -- 目录名称
+                    path = filepath, -- 目录完整路径
+                })
+            end
         end
     end
 
@@ -183,14 +197,14 @@ end
 function mod_utils.check_get_available_mods(main_config)
     local mods_data = {}
 
-    local mod_subdirs = mod_utils.get_subdirs("mods", function(name, path)
+    local mod_subdirs = mod_utils.get_subdirs("mods", true, function(name, path)
         return not table.contains(not_mod_path, name)
     end)
 
     for _, mod_data in ipairs(mod_subdirs) do
         -- 加载模组配置文件
-        local config = require(ppref .. mod_data.path .. ".config")
-
+        local config = mod_data.config
+        
         -- 检查是否是兼容游戏版本
         if type(config.game_version) == "string" and config.game_version == KR_GAME or type(config.game_version) == "table" and table.contains(config.game_version, KR_GAME) then
             -- 检查模组是否启用且路径存在
@@ -208,21 +222,14 @@ function mod_utils.check_get_available_mods(main_config)
         end
     end
 
-    local ascending = {}
-
     if #mods_data > 0 then
-        -- 根据优先级对模组进行降序排序
-        table.sort(mods_data, function(a, b)
-            return a.priority > b.priority
-        end)
-
         -- 根据优先级对模组进行升序排序
-        for i = #mods_data, 1, -1 do
-            table.insert(ascending, mods_data[i])
-        end
+        table.sort(mods_data, function(a, b)
+            return a.priority < b.priority
+        end)
     end
 
-    return mods_data, ascending
+    return mods_data
 end
 
 ---根据表修改指定动画
@@ -290,8 +297,9 @@ end
 ---@param t table 表
 ---@param k string 键
 ---@param factor number 因子
+---@param is_int? boolean 是否向上取整
 ---@return boolean 是否成功
-function mod_utils.apply_factor(t, k, factor)
+function mod_utils.apply_factor(t, k, factor, is_int)
     if factor == 1 or not t[k] then
         return false
     end
@@ -303,10 +311,18 @@ function mod_utils.apply_factor(t, k, factor)
         for i = 1, #value do
             local v = value[i]
 
-            value[i] = v * factor
+            if is_int then
+                value[i] = math.ceil(v * factor)
+            else
+                value[i] = v * factor
+            end
         end
     elseif value_type == "number" then
-        t[k] = math.ceil(value * factor)
+        if is_int then
+            t[k] = math.ceil(value * factor)
+        else
+            t[k] = value * factor
+        end
     end
 
     return true

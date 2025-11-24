@@ -55,7 +55,9 @@ end
 function hook.I.load_atlas(load_atlas, self, ref_scale, path, name, yielding)
     load_atlas(self, ref_scale, path, name, yielding)
 
-    for _, mod_data in ipairs(hook.asc_mods_data) do
+    for i = 1, #hook.mods_data do
+        local mod_data = hook.mods_data[i]
+
         local mod_assets_path = mod_data.path .. "/_assets/images"
 
         if FS.isDirectory(mod_assets_path) then
@@ -80,7 +82,9 @@ end
 function hook.I.queue_load_atlas(queue_load_atlas, self, ref_scale, path, name)
     queue_load_atlas(self, ref_scale, path, name)
 
-    for _, mod_data in ipairs(hook.asc_mods_data) do
+    for i = 1, #hook.mods_data do
+        local mod_data = hook.mods_data[i]
+
         local mod_assets_path = mod_data.path .. "/_assets/images"
 
         if FS.isDirectory(mod_assets_path) then
@@ -120,7 +124,9 @@ end
 function hook.S.init(init, self, path, overrides)
     init(self, path, overrides)
 
-    for _, mod_data in ipairs(hook.asc_mods_data) do
+    for i = 1, #hook.mods_data do
+        local mod_data = hook.mods_data[i]
+
         local mod_assets_path = mod_data.path .. "/_assets/sounds"
 
         if FS.isDirectory(mod_assets_path) then
@@ -205,7 +211,9 @@ end
 function hook.S.load_group(load_group, self, name, yielding, filter)
     load_group(self, name, yielding, filter)
 
-    for _, mod_data in ipairs(hook.asc_mods_data) do
+    for i = 1, #hook.mods_data do
+        local mod_data = hook.mods_data[i]
+
         local mod_files_path = mod_data.path .. "/_assets/sounds/files"
 
         if FS.isDirectory(mod_files_path) then
@@ -236,7 +244,9 @@ end
 function hook.LU.load_level(load_level, store, name)
     local level = load_level(store, name)
 
-    for _, mod_data in ipairs(hook.asc_mods_data) do
+    for i = 1, #hook.mods_data do
+        local mod_data = hook.mods_data[i]
+
         if FS.isDirectory(mod_data.path .. "/data/levels") then
             local origin_path = KR_PATH_GAME
             KR_PATH_GAME = mod_data.path
@@ -262,7 +272,9 @@ end
 function hook.P.load(load, self, name, visible_coords)
     load(self, name, visible_coords)
 
-    for _, mod_data in ipairs(hook.asc_mods_data) do
+    for i = 1, #hook.mods_data do
+        local mod_data = hook.mods_data[i]
+
         if FS.isDirectory(mod_data.path .. "/data/waves") then
             local origin_path = KR_PATH_GAME
             KR_PATH_GAME = mod_data.path
