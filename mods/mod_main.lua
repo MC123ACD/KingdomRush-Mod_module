@@ -46,8 +46,8 @@ function mod_main:after_init()
     local loaded_mods = {}
 
     -- 正序加载所有模组，确保加载模块顺序正确
-    for i = 1, #self.desc_mods_data do
-        local mod_data = self.desc_mods_data[i]
+    for i = 1, #self.mods_data do
+        local mod_data = self.mods_data[i]
 
         -- 添加模组路径到package.path
         mod_utils.add_path(mod_data)
@@ -70,7 +70,7 @@ function mod_main:after_init()
         local loaded_mod, mod_data = unpack(loaded_mods[i])
 
         -- 初始化模组
-        loaded_mod[1]:init(mod_data)
+        loaded_mod:init(mod_data)
 
         -- 打印模组加载信息
         log.error(mod_utils.get_debug_info(mod_data.config))

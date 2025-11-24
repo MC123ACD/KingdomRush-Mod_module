@@ -193,7 +193,7 @@ function mod_utils.get_debug_info(config)
 end
 
 ---检查并返回包含可用模组的表
----@return table 降序排序的表, table 升序排序的表
+---@return table 升序排序的表
 function mod_utils.check_get_available_mods(main_config)
     local mods_data = {}
 
@@ -201,7 +201,9 @@ function mod_utils.check_get_available_mods(main_config)
         return not table.contains(not_mod_path, name)
     end)
 
-    for _, mod_data in ipairs(mod_subdirs) do
+    for i = 1, #mod_subdirs do
+        local mod_data = mod_subdirs[i]
+
         -- 加载模组配置文件
         local config = mod_data.config
         
