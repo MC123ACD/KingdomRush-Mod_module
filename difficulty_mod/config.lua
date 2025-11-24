@@ -1,16 +1,17 @@
 return {
     name = "difficulty_mod",
-    version = "1.1.0",
+    version = "1.3.0",
     game_version = {"kr5", "kr3", "kr2", "kr1"},
     desc = "增加额外难度设置",
-    url = nil,
-    github_url = nil,
+    url = "https://tieba.baidu.com/p/10139965218",
     by = "MC123ACD",
     enabled = true,
     priority = 1,
 
     --[[
-        数值方面设置
+        ================================================
+        数值方面设置======================================
+        ================================================
     --]]
 
     -- 初始金币倍数
@@ -62,11 +63,26 @@ return {
     -- 英雄技能冷却倍数
     hero_skill_cooldown_factor = 1,
 
+    --[[
+        防御塔
+    --]]
+
     -- 防御塔价格倍数（向上取整）
     tower_price_factor = 1,
+    -- 防御塔技能价格倍数（向上取整）
+    tower_powers_price_factor = 1,
+
+    -- 兵营集结点范围倍数
+    barrack_rally_range_factor = 1,
+    -- 兵营人数倍数（向上取整）
+    barrack_max_soldiers_factor = 1,
+    -- 兵营士兵复活时间倍数
+    barrack_spawn_time_factor = 1,
 
     --[[
-        机制方面设置
+        ================================================
+        机制方面设置======================================
+        ================================================
     --]]
 
     -- 是否启用相反路径

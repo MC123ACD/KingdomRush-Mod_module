@@ -30,43 +30,47 @@ function modify_dif.check_flags_get_factor(flags, config_key)
     return factor, matched_flags
 end
 
-function modify_dif:templates()
+-- 敌人模板
+function modify_dif:enemy_templates()
     local config = self.config
 
-    -- 敌人
     local enemy_templates = E:filter_templates("enemy")
 
     for _, e in pairs(enemy_templates) do
+        local vis_flags = e.vis.flags
+
         -- 赏金
         if e.enemy.gold then
-            local factor = modify_dif.check_flags_get_factor(e.vis.flags, "enemy_gold_factor")
+            local factor = modify_dif.check_flags_get_factor(vis_flags, "enemy_gold_factor")
 
-            mod_utils.apply_factor(e.enemy, "gold", factor)
+            mod_utils.apply_factor(e.enemy, "gold", factor, true)
         end
 
         -- 血量
         if e.health and e.health.hp_max then
-            local factor = modify_dif.check_flags_get_factor(e.vis.flags, "enemy_hp_max_factor")
+            local factor = modify_dif.check_flags_get_factor(vis_flags, "enemy_hp_max_factor")
 
             mod_utils.apply_factor(e.health, "hp_max", factor)
         end
 
         -- 速度
         if e.motion and e.motion.max_speed then
-            local factor = modify_dif.check_flags_get_factor(e.vis.flags, "enemy_speed_factor")
+            local factor = modify_dif.check_flags_get_factor(vis_flags, "enemy_speed_factor")
 
             mod_utils.apply_factor(e.motion, "max_speed", factor)
         end
 
         -- 技能冷却
-        if e.motion and e.motion.max_speed then
-            local factor = modify_dif.check_flags_get_factor(e.vis.flags, "enemy_cooldown_factor")
+        local factor = modify_dif.check_flags_get_factor(vis_flags, "enemy_cooldown_factor")
 
-            mod_utils.mixed_apply_factor(e, "cooldown", factor)
-        end
+        mod_utils.mixed_apply_factor(e, "cooldown", factor)
     end
+end
 
-    -- 英雄
+-- 英雄模板
+function modify_dif:hero_templates()
+    local config = self.config
+
     local hero_templates = E:filter_templates("hero")
 
     for _, h in pairs(hero_templates) do
@@ -80,13 +84,52 @@ function modify_dif:templates()
             end
         end
     end
+end
+
+-- 防御塔模板
+function modify_dif:tower_templates()
+    local config = self.config
 
     local tower_templates = E:filter_templates("tower")
 
     -- 防御塔
     for _, t in pairs(tower_templates) do
-        if t.tower.price then
-            mod_utils.apply_factor(t.tower, "price", config.tower_price_factor)
+        local tower = t.tower
+
+        if tower.price then
+            mod_utils.apply_factor(tower, "price", config.tower_price_factor, true)
+        end
+
+        if t.powers then
+            local powers = t.powers
+
+            for _, power in pairs(powers) do
+                if power.price_base then
+                    mod_utils.apply_factor(power, "price_base", config.tower_powers_price_factor, true)
+                end
+                if power.price_inc then
+                    mod_utils.apply_factor(power, "price_inc", config.tower_powers_price_factor, true)
+                end
+            end
+        end
+    end
+
+    local barrack_templates = E:filter_templates("barrack")
+
+    -- 兵营
+    for _, t in pairs(barrack_templates) do
+        local barrack = t.barrack
+
+        if barrack.rally_range then
+            mod_utils.apply_factor(barrack, "rally_range", config.barrack_rally_range_factor)
+        end
+
+        if barrack.max_soldiers then
+            mod_utils.apply_factor(barrack, "max_soldiers", config.barrack_max_soldiers_factor, true)
+        end
+
+        if t.spawn_time then
+            mod_utils.apply_factor(t, "spawn_time", config.barrack_spawn_time_factor)
         end
     end
 end

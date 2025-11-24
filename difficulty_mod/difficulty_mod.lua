@@ -27,8 +27,8 @@ local hook = {}
 
 setmetatable(hook, mod_utils.auto_table_mt)
 
-function hook:init()
-	modify_dif:init(hook.config)
+function hook:init(mod_data)
+	modify_dif:init(mod_data.config)
 
 	HOOK(E, "load", self.E.load)
 	HOOK(W, "load", self.W.load)
@@ -39,7 +39,9 @@ end
 function hook.E.load(load, self)
 	load(self)
 
-	modify_dif:templates()
+	modify_dif:enemy_templates()
+	modify_dif:hero_templates()
+	modify_dif:tower_templates()
 	modify_dif:game_settings()
 end
 
