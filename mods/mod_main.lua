@@ -45,12 +45,19 @@ end
 function mod_main:after_init()
     local loaded_mods = {}
 
-    -- 正序加载所有模组，确保加载模块顺序正确
+    -- 正序增加模组路径
     for i = 1, #self.mods_data do
         local mod_data = self.mods_data[i]
 
         -- 添加模组路径到package.path
         mod_utils.add_path(mod_data)
+
+        log.debug("Current package.path: %s", package.path)
+    end
+
+    -- 倒序加载模组，确保加载模块顺序正确
+    for i = #self.mods_data, 1, -1 do
+        local mod_data = self.mods_data[i]
 
         -- 加载模组
         local mod = require(mod_data.name)
@@ -65,7 +72,7 @@ function mod_main:after_init()
         end
     end
 
-    -- 倒序初始化模组，确保高优先级覆盖低优先级
+    -- 正序初始化模组，确保高优先级覆盖低优先级
     for i = #loaded_mods, 1, -1 do
         local loaded_mod, mod_data = unpack(loaded_mods[i])
 

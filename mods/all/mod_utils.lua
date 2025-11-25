@@ -18,7 +18,8 @@ local ignored_path = {
 }
 
 local not_mod_path = {
-    "all"
+    "all",
+    "baisic_mod_template"
 }
 
 local ppref = ""
@@ -139,7 +140,6 @@ function mod_utils.add_path(mod_data)
     -- 更新FS和package的require路径
     FS.setRequirePath(table.concat(additional_paths, ";") .. ";" .. FS.getRequirePath())
     package.path = FS.getRequirePath()
-    log.debug("Current package.path: %s", package.path)
 end
 
 --- 将表转化为字符串，返回的字符串无键值与大括号
