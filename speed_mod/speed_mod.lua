@@ -10,7 +10,9 @@ local hook = {}
 
 setmetatable(hook, auto_table_mt)
 
-function hook:init()
+function hook:init(mod_data)
+	self.config = mod_data.config
+
 	HOOK(game, "keypressed", self.game.keypressed)
 	HOOK(game, "update", self.game.update)
 end
