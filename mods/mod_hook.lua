@@ -1,6 +1,5 @@
 -- chunkname: @./mods/mod_hook.lua
 local log = require("klua.log"):new("mod_hook")
-local IS_KR5 = KR_GAME == "kr5"
 local I = require("klove.image_db")
 local S = require("sound_db")
 local LU = require("level_utils")
@@ -55,13 +54,12 @@ end
 function hook.I.load_atlas(load_atlas, self, ref_scale, path, name, yielding)
     load_atlas(self, ref_scale, path, name, yielding)
 
-    for i = 1, #hook.mods_data do
+    for i = 1, hook.mods_count do
         local mod_data = hook.mods_data[i]
 
-        local mod_assets_path = mod_data.path .. "/_assets/images"
-
-        if FS.isDirectory(mod_assets_path) then
-            local lua_file = mod_assets_path .. "/" .. name .. ".lua"
+        local images_path = mod_data.check_paths["/_assets/images"]
+        if images_path then
+            local lua_file = string.format("%s/%s.lua", images_path, name)
 
             if FS.isFile(lua_file) then
                 local name_scale = string.format("%s-%.6f", name, ref_scale)
@@ -82,13 +80,13 @@ end
 function hook.I.queue_load_atlas(queue_load_atlas, self, ref_scale, path, name)
     queue_load_atlas(self, ref_scale, path, name)
 
-    for i = 1, #hook.mods_data do
+    for i = 1, hook.mods_count do
         local mod_data = hook.mods_data[i]
 
-        local mod_assets_path = mod_data.path .. "/_assets/images"
+        local images_path = mod_data.check_paths["/_assets/images"]
 
-        if FS.isDirectory(mod_assets_path) then
-            local lua_file = mod_assets_path .. "/" .. name .. ".lua"
+        if images_path then
+            local lua_file = string.format("%s/%s.lua", images_path, name)
 
             if FS.isFile(lua_file) then
                 local name_scale = string.format("%s-%.6f", name, ref_scale)
@@ -124,83 +122,83 @@ end
 function hook.S.init(init, self, path, overrides)
     init(self, path, overrides)
 
-    for i = 1, #hook.mods_data do
+    for i = 1, hook.mods_count do
         local mod_data = hook.mods_data[i]
 
-        local mod_assets_path = mod_data.path .. "/_assets/sounds"
+        local settings_path = mod_data.check_paths["/_assets/sounds/settings.lua"]
+        if settings_path then
+            local f_settings = FS.load(settings_path)()
 
-        if FS.isDirectory(mod_assets_path) then
-            if FS.isFile(mod_assets_path .. "/settings.lua") then
-                local f_settings = FS.load(path .. "/settings.lua")()
-
-                if f_settings.source_groups then
-                    for gid, group in pairs(f_settings.source_groups) do
-                        self.source_groups[gid] = {
-                            max_sources = group.max_sources or 1
-                        }
-                        self.active_sources[gid] = self.active_sources[gid] or {}
-                    end
+            if f_settings.source_groups then
+                for gid, group in pairs(f_settings.source_groups) do
+                    self.source_groups[gid] = {
+                        max_sources = group.max_sources or 1
+                    }
+                    self.active_sources[gid] = self.active_sources[gid] or {}
                 end
-
-                self.mod_load.settings = true
             end
 
-            if FS.isFile(mod_assets_path .. "/sounds.lua") then
-                self.sounds = FS.load(mod_assets_path .. "/sounds.lua")()
+            self.mod_load.settings = true
+        end
 
-                log.info("Found sound's sounds override in mod %s", mod_data.name)
+        local sounds_path = mod_data.check_paths["/_assets/sounds/sounds.lua"]
+        if sounds_path then
+            self.sounds = FS.load(sounds_path)()
 
-                self.mod_load.sounds = true
+            log.info("Found sound's sounds override in mod %s", mod_data.name)
+
+            self.mod_load.sounds = true
+        end
+
+        local groups_path = mod_data.check_paths["/_assets/sounds/groups.lua"]
+        if groups_path then
+            self.groups = FS.load(groups_path)()
+
+            log.info("Found sound's groups override in mod %s", mod_data.name)
+        end
+
+        local extra_path = mod_data.check_paths["/_assets/sounds/extra.lua"]
+        if extra_path then
+            local f_extra
+
+            f_extra = FS.load(extra_path)()
+
+            if f_extra and f_extra.sounds then
+                for k, v in pairs(f_extra.sounds) do
+                    self.sounds[k] = v
+                end
             end
 
-            if FS.isFile(mod_assets_path .. "/groups.lua") then
-                self.groups = FS.load(mod_assets_path .. "/groups.lua")()
-
-                log.info("Found sound's groups override in mod %s", mod_data.name)
+            for id, sd in pairs(self.sounds) do
+                self.sound_extras[id] = {}
             end
 
-            if FS.isFile(mod_assets_path .. "/extra.lua") then
-                local f_extra
+            if f_extra and f_extra.groups then
+                for k, v in pairs(f_extra.groups) do
+                    if v.append then
+                        if v.sounds then
+                            for _, s in pairs(v.sounds) do
+                                local sound = self.sounds[s]
 
-                f_extra = FS.load(mod_assets_path .. "/extra.lua")()
-
-                if f_extra and f_extra.sounds then
-                    for k, v in pairs(f_extra.sounds) do
-                        self.sounds[k] = v
-                    end
-                end
-
-                for id, sd in pairs(self.sounds) do
-                    self.sound_extras[id] = {}
-                end
-
-                if f_extra and f_extra.groups then
-                    for k, v in pairs(f_extra.groups) do
-                        if v.append then
-                            if v.sounds then
-                                for _, s in pairs(v.sounds) do
-                                    local sound = self.sounds[s]
-
-                                    for _, f in pairs(sound.files) do
-                                        if not table.contains(self.groups[k].files, f) then
-                                            table.insert(self.groups[k].files, f)
-                                        end
-                                    end
-                                end
-                            end
-
-                            if v.files then
-                                for _, f in pairs(v.files) do
+                                for _, f in pairs(sound.files) do
                                     if not table.contains(self.groups[k].files, f) then
                                         table.insert(self.groups[k].files, f)
                                     end
                                 end
                             end
-                        elseif v.alias then
-                            self.groups[k] = self.groups[v.alias]
-                        else
-                            self.groups[k] = v
                         end
+
+                        if v.files then
+                            for _, f in pairs(v.files) do
+                                if not table.contains(self.groups[k].files, f) then
+                                    table.insert(self.groups[k].files, f)
+                                end
+                            end
+                        end
+                    elseif v.alias then
+                        self.groups[k] = self.groups[v.alias]
+                    else
+                        self.groups[k] = v
                     end
                 end
             end
@@ -211,12 +209,12 @@ end
 function hook.S.load_group(load_group, self, name, yielding, filter)
     load_group(self, name, yielding, filter)
 
-    for i = 1, #hook.mods_data do
+    for i = 1, hook.mods_count do
         local mod_data = hook.mods_data[i]
 
-        local mod_files_path = mod_data.path .. "/_assets/sounds/files"
+        local files_path = mod_data.check_paths["/_assets/sounds/files"]
 
-        if FS.isDirectory(mod_files_path) then
+        if files_path then
             if self.sounds_uses and self.sounds_uses[name] then
                 self.sounds_uses[name] = nil
             end
@@ -244,10 +242,11 @@ end
 function hook.LU.load_level(load_level, store, name)
     local level = load_level(store, name)
 
-    for i = 1, #hook.mods_data do
+    for i = 1, hook.mods_count do
         local mod_data = hook.mods_data[i]
 
-        if FS.isDirectory(mod_data.path .. "/data/levels") then
+        local levels_data_path = mod_data.check_paths["/data/levels"]
+        if levels_data_path then
             local origin_path = KR_PATH_GAME
             KR_PATH_GAME = mod_data.path
 
@@ -272,10 +271,11 @@ end
 function hook.P.load(load, self, name, visible_coords)
     load(self, name, visible_coords)
 
-    for i = 1, #hook.mods_data do
+    for i = 1, hook.mods_count do
         local mod_data = hook.mods_data[i]
 
-        if FS.isDirectory(mod_data.path .. "/data/waves") then
+        local waves_data_path = mod_data.check_paths["/data/waves"]
+        if waves_data_path then
             local origin_path = KR_PATH_GAME
             KR_PATH_GAME = mod_data.path
 

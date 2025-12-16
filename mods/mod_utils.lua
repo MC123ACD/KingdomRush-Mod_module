@@ -1,8 +1,8 @@
 -- chunkname: @./mods/all/mod_utils.lua
 local log = require("klua.log"):new("mod_utils")
-local IS_KR5 = KR_GAME == "kr5"
 local FS = love.filesystem
 local hook_utils = require("hook_utils")
+local mod_main_config = require("mod_main_config")
 
 local A
 if IS_KR5 then
@@ -12,21 +12,6 @@ else
 end
 
 local mod_utils = {}
-
-local ignored_path = {
-    "_assets"
-}
-
-local not_mod_path = {
-    "all",
-    "baisic_mod_template"
-}
-
-local ppref = ""
-
-if not love.filesystem.isFused() then
-    ppref = base_dir == work_dir and "src/"
-end
 
 -- 元表：自动创建不存在表
 mod_utils.auto_table_mt = {
@@ -39,10 +24,6 @@ mod_utils.auto_table_mt = {
     end
 }
 
-function mod_utils.get_ppref()
-    return ppref
-end
-
 --- 获取指定路径下的所有子目录名
 ---
 --- 返回一个包含子目录信息的表，每个元素包含name(子目录名)和path(完整路径)
@@ -54,47 +35,56 @@ function mod_utils.get_subdirs(path, is_mods, filter_fn)
     -- 获取目录下所有文件和子目录
     local files = FS.getDirectoryItems(path)
 
-    local folders = {}
-
     -- 检查路径是否存在
     if not files then
         log.error("Path does not exist: %s", path)
         return {}
+    end
 
-        -- 检查目录是否为空
-    elseif #files == 0 then
+    local files_count = #files
+    -- 检查目录是否为空
+    if files_count == 0 then
         log.debug("No files found in path: %s", path)
     end
 
+    local file_datas = {}
+
     -- 遍历目录下的所有项目
-    for i = 1, #files do
+    for i = 1, files_count do
         local file = files[i]
 
         -- 构建完整文件路径
         local filepath = path .. "/" .. file
 
-        -- 检查是否为目录
-        if not filter_fn or filter_fn(file, filepath) and not table.contains(ignored_path, file) and FS.isDirectory(filepath) then
+        -- 过滤
+        if (not filter_fn or filter_fn(file, filepath)) and not table.contains(mod_main_config.ignored_path, file) and FS.isDirectory(filepath) then
+            local file_data = {
+                name = file,
+                path = filepath,
+                check_paths = {},
+            }
+
             if is_mods then
-                local config = require(ppref .. filepath .. ".config")
+                local config = require(mod_main_config.ppref .. filepath .. ".config")
                 
-                -- 将目录信息添加到结果表中
-                table.insert(folders, {
-                    name = file,        -- 目录名称
-                    path = filepath,    -- 目录完整路径
-                    config = config     -- 配置
-                })
-            else
-                -- 将目录信息添加到结果表中
-                table.insert(folders, {
-                    name = file,     -- 目录名称
-                    path = filepath, -- 目录完整路径
-                })
+                file_data.config = config
+
+                local check_paths = mod_main_config.check_paths
+                for i = 1, #check_paths do
+                    local check_path = check_paths[i]
+                    local full_check_path = filepath .. check_path
+
+                    if FS.exists(full_check_path) then
+                        file_data.check_paths[check_path] = full_check_path
+                    end
+                end
             end
+
+            table.insert(file_datas, file_data)
         end
     end
 
-    return folders
+    return file_datas
 end
 
 ---将模组所有目录添加到 package.path 中，以便 require 能够找到模组文件
@@ -194,11 +184,11 @@ end
 
 ---检查并返回包含可用模组的表
 ---@return table 升序排序的表
-function mod_utils.check_get_available_mods(main_config)
+function mod_utils.check_get_available_mods()
     local mods_data = {}
 
     local mod_subdirs = mod_utils.get_subdirs("mods", true, function(name, path)
-        return not table.contains(not_mod_path, name)
+        return not table.contains(mod_main_config.not_mod_path, name)
     end)
 
     for i = 1, #mod_subdirs do

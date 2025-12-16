@@ -3,7 +3,6 @@ local log = require("klua.log"):new("baisic_mod_template")
 local mod_utils = require("mod_utils")
 local hook_utils = require("hook_utils")
 local HOOK = hook_utils.HOOK
-local baisic_mod_template_templates = require("baisic_mod_template_templates")
 
 local hook = {}
 
@@ -18,7 +17,7 @@ end
 function hook.E.load(load, self)
 	load(self)
 	
-	baisic_mod_template_templates:init()
+	-- 在这里修改模板
 end
 
 return hook

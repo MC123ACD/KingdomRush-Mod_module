@@ -1,12 +1,9 @@
 -- chunkname: @./mods/mod_main.lua
-
 local log = require("klua.log"):new("mod_main")
-local IS_KR5 = KR_GAME == "kr5"
 local FS = love.filesystem
 
 local additional_paths = {
-    "mods/?.lua",
-    "mods/all/?.lua"
+    "mods/?.lua"
 }
 
 FS.setRequirePath(table.concat(additional_paths, ";") .. ";" .. FS.getRequirePath())
@@ -15,28 +12,31 @@ package.path = FS.getRequirePath()
 local mod_hook = require("mod_hook")
 local mod_utils = require("mod_utils")
 local hook_utils = require("hook_utils")
+local mod_main_config = require("mod_main_config")
+require("mod_globals")
 
 local mod_main = {}
 
 function mod_main:init(director)
-    local config = require("config")
+    local mods_data = mod_utils.check_get_available_mods()
 
-    local mods_data = mod_utils.check_get_available_mods(config)
-    self.mods_data = mods_data
-    mod_hook.mods_data = mods_data
-
-    if config.enabled then
-        self:front_init()
-
+    if not mod_main_config.enabled then
         director:init(main.params)
-
-        self:after_init()
-    else
-        director:init(main.params)
+        log.info("Mod module is disabled in config.lua")
+        return false
     end
+
+    self:front_init(mods_data)
+    director:init(main.params)
+    self:after_init()
+    return true
 end
 
 function mod_main:front_init(mods_data)
+    self.mods_data = mods_data
+    self.mods_count = #mods_data
+    mod_hook.mods_data = self.mods_data
+    mod_hook.mods_count = self.mods_count
     mod_hook:front_init()
 end
 
@@ -46,7 +46,7 @@ function mod_main:after_init()
     local loaded_mods = {}
 
     -- 正序增加模组路径
-    for i = 1, #self.mods_data do
+    for i = 1, self.mods_count do
         local mod_data = self.mods_data[i]
 
         -- 添加模组路径到package.path
@@ -56,7 +56,7 @@ function mod_main:after_init()
     end
 
     -- 倒序加载模组，确保加载模块顺序正确
-    for i = #self.mods_data, 1, -1 do
+    for i = self.mods_count, 1, -1 do
         local mod_data = self.mods_data[i]
 
         -- 加载模组
@@ -72,8 +72,9 @@ function mod_main:after_init()
         end
     end
 
+    local loaded_mods_count = #loaded_mods
     -- 正序初始化模组，确保高优先级覆盖低优先级
-    for i = #loaded_mods, 1, -1 do
+    for i = loaded_mods_count, 1, -1 do
         local loaded_mod, mod_data = unpack(loaded_mods[i])
 
         -- 初始化模组
