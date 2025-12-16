@@ -7,6 +7,7 @@ local P = require("path_db")
 local FS = love.filesystem
 local mod_utils = require("mod_utils")
 local hook_utils = require("hook_utils")
+local mod_db = require("mod_db")
 local HOOK = hook_utils.HOOK
 
 local A
@@ -54,8 +55,8 @@ end
 function hook.I.load_atlas(load_atlas, self, ref_scale, path, name, yielding)
     load_atlas(self, ref_scale, path, name, yielding)
 
-    for i = 1, hook.mods_count do
-        local mod_data = hook.mods_data[i]
+    for i = 1, mod_db.mods_count do
+        local mod_data = mod_db.mods_datas[i]
 
         local images_path = mod_data.check_paths["/_assets/images"]
         if images_path then
@@ -68,7 +69,7 @@ function hook.I.load_atlas(load_atlas, self, ref_scale, path, name, yielding)
                     self.atlas_uses[name_scale] = nil
                 end
 
-                self:preload_atlas(ref_scale, mod_assets_path, name)
+                self:preload_atlas(ref_scale, images_path, name)
 
                 log.info("Found atlas override %s in mod %s", lua_file, mod_data.name)
             end
@@ -80,8 +81,8 @@ end
 function hook.I.queue_load_atlas(queue_load_atlas, self, ref_scale, path, name)
     queue_load_atlas(self, ref_scale, path, name)
 
-    for i = 1, hook.mods_count do
-        local mod_data = hook.mods_data[i]
+    for i = 1, mod_db.mods_count do
+        local mod_data = mod_db.mods_datas[i]
 
         local images_path = mod_data.check_paths["/_assets/images"]
 
@@ -110,7 +111,7 @@ function hook.I.queue_load_atlas(queue_load_atlas, self, ref_scale, path, name)
                     self.load_queue[k] = nil
                 end
 
-                queue_load_atlas(self, ref_scale, mod_assets_path, name)
+                queue_load_atlas(self, ref_scale, images_path, name)
 
                 log.info("Found atlas override %s in mod %s", group_file, mod_data.name)
             end
@@ -122,8 +123,8 @@ end
 function hook.S.init(init, self, path, overrides)
     init(self, path, overrides)
 
-    for i = 1, hook.mods_count do
-        local mod_data = hook.mods_data[i]
+    for i = 1, mod_db.mods_count do
+        local mod_data = mod_db.mods_datas[i]
 
         local settings_path = mod_data.check_paths["/_assets/sounds/settings.lua"]
         if settings_path then
@@ -209,8 +210,8 @@ end
 function hook.S.load_group(load_group, self, name, yielding, filter)
     load_group(self, name, yielding, filter)
 
-    for i = 1, hook.mods_count do
-        local mod_data = hook.mods_data[i]
+    for i = 1, mod_db.mods_count do
+        local mod_data = mod_db.mods_datas[i]
 
         local files_path = mod_data.check_paths["/_assets/sounds/files"]
 
@@ -242,8 +243,8 @@ end
 function hook.LU.load_level(load_level, store, name)
     local level = load_level(store, name)
 
-    for i = 1, hook.mods_count do
-        local mod_data = hook.mods_data[i]
+    for i = 1, mod_db.mods_count do
+        local mod_data = mod_db.mods_datas[i]
 
         local levels_data_path = mod_data.check_paths["/data/levels"]
         if levels_data_path then
@@ -271,8 +272,8 @@ end
 function hook.P.load(load, self, name, visible_coords)
     load(self, name, visible_coords)
 
-    for i = 1, hook.mods_count do
-        local mod_data = hook.mods_data[i]
+    for i = 1, mod_db.mods_count do
+        local mod_data = mod_db.mods_datas[i]
 
         local waves_data_path = mod_data.check_paths["/data/waves"]
         if waves_data_path then

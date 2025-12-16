@@ -1,4 +1,4 @@
-local log = require("klua.log"):new("baisic_mod_template")
+local log = require("klua.log"):new("mod_template")
 
 local mod_utils = require("mod_utils")
 local hook_utils = require("hook_utils")
@@ -16,8 +16,11 @@ end
 
 function hook.E.load(load, self)
 	load(self)
+	package.loaded.mod_template_templates = nil
+	package.loaded.mod_template_scripts = nil
 	
-	-- 在这里修改模板
+	local mod_template_templates = require("mod_template_templates")
+	local mod_template_scripts = require("mod_template_scripts")
 end
 
 return hook

@@ -3,7 +3,8 @@ local log = require("klua.log"):new("mod_main")
 local FS = love.filesystem
 
 local additional_paths = {
-    "mods/?.lua"
+    "mods/?.lua",
+    "mods/all/?.lua"
 }
 
 FS.setRequirePath(table.concat(additional_paths, ";") .. ";" .. FS.getRequirePath())
@@ -12,13 +13,14 @@ package.path = FS.getRequirePath()
 local mod_hook = require("mod_hook")
 local mod_utils = require("mod_utils")
 local hook_utils = require("hook_utils")
+local mod_db = require("mod_db")
 local mod_main_config = require("mod_main_config")
 require("mod_globals")
 
 local mod_main = {}
 
 function mod_main:init(director)
-    local mods_data = mod_utils.check_get_available_mods()
+    mod_db:init()
 
     if not mod_main_config.enabled then
         director:init(main.params)
@@ -26,17 +28,13 @@ function mod_main:init(director)
         return false
     end
 
-    self:front_init(mods_data)
+    self:front_init()
     director:init(main.params)
     self:after_init()
     return true
 end
 
-function mod_main:front_init(mods_data)
-    self.mods_data = mods_data
-    self.mods_count = #mods_data
-    mod_hook.mods_data = self.mods_data
-    mod_hook.mods_count = self.mods_count
+function mod_main:front_init()
     mod_hook:front_init()
 end
 
@@ -46,8 +44,8 @@ function mod_main:after_init()
     local loaded_mods = {}
 
     -- 正序增加模组路径
-    for i = 1, self.mods_count do
-        local mod_data = self.mods_data[i]
+    for i = 1, mod_db.mods_count do
+        local mod_data = mod_db.mods_datas[i]
 
         -- 添加模组路径到package.path
         mod_utils.add_path(mod_data)
@@ -56,8 +54,8 @@ function mod_main:after_init()
     end
 
     -- 倒序加载模组，确保加载模块顺序正确
-    for i = self.mods_count, 1, -1 do
-        local mod_data = self.mods_data[i]
+    for i = mod_db.mods_count, 1, -1 do
+        local mod_data = mod_db.mods_datas[i]
 
         -- 加载模组
         local mod = require(mod_data.name)
@@ -81,7 +79,7 @@ function mod_main:after_init()
         loaded_mod:init(mod_data)
 
         -- 打印模组加载信息
-        log.error(mod_utils.get_debug_info(mod_data.config))
+        log.info(mod_db.get_debug_info(mod_data.config))
     end
 
     mod_hook:after_init()
