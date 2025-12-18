@@ -11,5 +11,7 @@ local mod_utils = require("mod_utils")
 function scripts.hero_alleria.insert(this, store)
 	函数体
 end
---]] 
+--]]
+-- 注修改后需要在模板内重新引用该函数
+-- T("hero_alleria").main_scripts.insert = scripts.hero_alleria.insert
 
