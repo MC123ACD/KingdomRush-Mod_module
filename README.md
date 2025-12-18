@@ -14,82 +14,29 @@
 - 自动加载 mods 目录下的所有模组
 - 模组按优先级降序加载，高优先级模组将会覆盖低优先级模块的修改
 
-## 使用方法
+## 如何开始
 
-### 1. 基础模块结构
-创建模块目录并实现必要文件：
+### 1. 安装模块
 
-```
-mods/
-└── your_mod/
-    ├── config.lua          -- 模块配置
-    ├── your_mod.lua        -- 模块主逻辑，名称务必与当前目录相同
-    └── subfolder/          -- [可选] 可选子目录
-        └── modules.lua     -- 模块
-```
-
-### 2. 安装模块
-#### 方法 1.
+#### 方法 1
 1. 将游戏根目录的 `main` 拖入到安装模块脚本文件夹
 2. 运行脚本
 3. 将 `main` 拖回游戏根目录即可
 
-注：
-1. 对于已打包的游戏，需要打开 exe 压缩包操作
-2. 脚本会修改 main 文件，源文件备份在 output 文件夹内
-
-#### 方法 2.
+#### 方法 2
 将 `main` 的 `love.update`（前三代为 `load_director`） 函数的 `director:init(main.params)` 字段修改为：
 ```lua
 require("mods.mod_main"):init(director)
 ```
 
-### 3. 增加第三方模组
+### 2. 打开 mods 目录下的创建新模组脚本
+
+### 3. 打开你的模组目录的 config 配置你的模组
+
+### 4. 现在可以开始修改了
+
+## 增加第三方模组
 将模组目录放入 mods 目录即可
-
-### 4. 配置示例
-```lua
--- config.lua
-return {
-    name = "UI增强模块",            -- 名称
-    desc = "提供额外的用户界面功能",  -- 描述
-    version = "1.0.0",            -- 版本
-    game_version = "kr5",         -- 兼容游戏版本，可为表
-    by = "开发者",                 -- 作者
-    url = "https://example.com",  -- 发布页面
-    enabled = true,               -- 启用状态
-    priority = 150                -- 优先级
-}
-```
-
-### 5. 模块实现
-```lua
--- your_mod.lua
-local M = {}
-
-function M:init(mod_data)   -- mod_data 用于接收模组数据
-    -- 模块初始化逻辑
-    -- 在此处实现HOOK、事件监听等功能
-    HOOK(E, "load", self.E_load)
-end
-
-function M.E_load(origin, self, ...)
-	--	在此处增加前逻辑...
-	origin(...)	-- 执行原函数
-	--	在此处增加后逻辑...
-end
-
-return M
-```
-
-#### mod_data 内容
-```lua
-mod_data = {
-    config = 配置文件的内容: table,
-    path = 完整路径: string,
-    name = 名称: string
-}
-```
 
 ## 开发规范
 
@@ -114,4 +61,3 @@ mod_data = {
 1. **模块未加载**：检查 `enabled` 配置和文件路径
 2. **路径冲突**：确认模块名称唯一性
 3. **加载顺序异常**：调整优先级数值
-
