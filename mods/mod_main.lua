@@ -10,12 +10,12 @@ local additional_paths = {
 FS.setRequirePath(table.concat(additional_paths, ";") .. ";" .. FS.getRequirePath())
 package.path = FS.getRequirePath()
 
+require("mod_globals")
 local mod_hook = require("mod_hook")
 local mod_utils = require("mod_utils")
 local hook_utils = require("hook_utils")
 local mod_db = require("mod_db")
 local mod_main_config = require("mod_main_config")
-require("mod_globals")
 
 local mod_main = {}
 
@@ -79,7 +79,7 @@ function mod_main:after_init()
         loaded_mod:init(mod_data)
 
         -- 打印模组加载信息
-        log.info(mod_db.get_debug_info(mod_data.config))
+        log.error(mod_db.get_debug_info(mod_data.config))
     end
 
     mod_hook:after_init()

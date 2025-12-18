@@ -2,7 +2,7 @@ return {
     -- 总控，关闭后禁用模组管理器
     enabled = true,
     not_mod_path = {
-        "baisic_mod_template",
+        "mod_template",
         "all"
     },
     ignored_path = {

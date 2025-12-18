@@ -4,6 +4,30 @@ local serpent = require("serpent")
 
 local hook_utils = {}
 
+-- 元表：自动创建不存在表
+hook_utils.auto_table_mt = {
+    __index = function(table, key)
+        local new = {}
+        hook_utils.setmetatable(new, auto_table_mt)
+
+        rawset(table, key, new)
+        return new
+    end
+}
+
+---创建新的钩子工具实例
+---@return table 新的钩子工具实例
+function hook_utils:new()
+    local new = {}
+    setmetatable(new, self.auto_table_mt)
+    return new
+end
+
+---增加钩子
+---@param obj table 对象
+---@param fn_name string 函数名
+---@param handler function 钩子处理器
+---@param priority integer 优先级
 function hook_utils.HOOK(obj, fn_name, handler, priority)
     priority = priority or 0
 
@@ -39,6 +63,11 @@ function hook_utils.HOOK(obj, fn_name, handler, priority)
     end)
 end
 
+---链式调用钩子
+---@param obj table 对象
+---@param fn_name string 函数名
+---@param ... any 参数
+---@return function 钩子函数
 function hook_utils:execute_hook_chain(obj, fn_name, ...)
     -- 获取这个函数的钩子信息
     local hook_info = obj.__hooks[fn_name]

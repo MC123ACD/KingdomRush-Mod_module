@@ -1,5 +1,10 @@
 local log = require("klua.log"):new("mod_template_scripts")
 local scripts = require("scripts")
+local S = require("sound_db")
+local P = require("path_db")
+local UP = require("upgrades")
+local scripts = require("scripts")
+local mod_utils = require("mod_utils")
 
 -- 这里可以覆盖函数，示例：
 --[[

@@ -17,19 +17,7 @@ else
     A = require("animation_db")
 end
 
-local hook = {}
-
--- 元表：自动创建不存在表
-auto_table_mt = {
-    __index = function(table, key)
-        local new = {}
-        setmetatable(new, auto_table_mt)
-
-        rawset(table, key, new)
-        return new
-    end
-}
-setmetatable(hook, auto_table_mt)
+local hook = hook_utils:new()
 
 function hook:front_init()
     HOOK(S, "init", self.S.init)

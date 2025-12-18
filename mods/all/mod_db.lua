@@ -94,23 +94,31 @@ function mod_db.check_get_available_mods()
         local mod_data = mod_subdirs[i]
 
         -- 加载模组配置文件
-        local config = require(mod_main_config.ppref .. mod_data.path .. ".config")
-
-        -- 检查是否是兼容游戏版本
-        if type(config.game_version) == "string" and config.game_version == KR_GAME or type(config.game_version) == "table" and table.contains(config.game_version, KR_GAME) then
-            -- 检查模组是否启用且路径存在
-            if config.enabled then
-                mod_data.priority = config.priority or 0
-                mod_data.config = config
-                table.insert(mods_datas, mod_data)
-            else
-                log.error("%s is disabled!", mod_data.name)
-            end
-        else
-            -- 不是兼容的游戏版本
-            log.error("Mod '%s' is not compatible. Required game version: %s", config.name,
-                mod_utils.table_tostring(config.game_version) or "unknown", config.name)
+        local success, config = pcall(require, string.format("%s%s.config", mod_main_config.ppref, mod_data.path))
+        if not success then
+            log.error("Failed to load config.lua for mod: %s", mod_data.name)
+            goto continue
         end
+
+        if not config.enabled then
+            log.error("%s is disabled", mod_data.name)
+            goto continue
+        end
+
+        local game_version = config.game_version
+        local game_version_type = type(game_version)
+
+        if not (game_version_type == "string" and game_version == KR_GAME or game_version_type == "table" and table.contains(game_version, KR_GAME)) then
+            log.error("Mod '%s' is not compatible. Required game version: %s", config.name,
+                mod_utils.table_tostring(game_version) or "unknown", config.name)
+            goto continue
+        end
+
+        mod_data.priority = config.priority or 0
+        mod_data.config = config
+        table.insert(mods_datas, mod_data)
+
+        ::continue::
     end
 
     if #mods_datas > 0 then
