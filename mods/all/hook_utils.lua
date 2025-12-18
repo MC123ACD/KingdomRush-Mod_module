@@ -8,7 +8,7 @@ local hook_utils = {}
 hook_utils.auto_table_mt = {
     __index = function(table, key)
         local new = {}
-        hook_utils.setmetatable(new, auto_table_mt)
+        setmetatable(new, hook_utils.auto_table_mt)
 
         rawset(table, key, new)
         return new
