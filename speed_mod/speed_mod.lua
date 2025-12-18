@@ -5,13 +5,12 @@ local hook_utils = require("hook_utils")
 local HOOK = hook_utils.HOOK
 local game = require("game")
 local key_is_down = love.keyboard.isDown
+local config = require("speed_mod.config")
 
-local hook = {}
-
-setmetatable(hook, auto_table_mt)
+local hook = hook_utils:new()
 
 function hook:init(mod_data)
-	self.config = mod_data.config
+	self.mod_data = mod_data
 
 	HOOK(game, "keypressed", self.game.keypressed)
 	HOOK(game, "update", self.game.update)
@@ -20,8 +19,6 @@ end
 -- 加减速快捷键
 function hook.game.keypressed(keypressed, self, key, isrepeat)
 	keypressed(self, key, isrepeat)
-
-	local config = hook.config
 
 	if config.is_down_key then
 		if key_is_down(config.up_speed_key) then
@@ -42,8 +39,6 @@ end
 
 function hook.game.update(update, self, dt)
 	update(self, dt)
-
-	local config = hook.config
 
 	if config.is_down_key and not (key_is_down(config.up_speed_key) or key_is_down(config.down_speed_key)) then
 		self.DBG_TIME_MULT = 1
