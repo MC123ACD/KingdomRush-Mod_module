@@ -29,7 +29,8 @@
 require("mods.mod_main"):init(director)
 ```
 
-### 2. 打开 mods 目录下的创建新模组脚本
+### 2. 运行 mods 目录下的创建新模组 create_new_mod 脚本
+输入你的模组名称，注：请不要使用中文
 
 ### 3. 打开你的模组目录的 config 配置你的模组
 
