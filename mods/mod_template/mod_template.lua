@@ -16,11 +16,11 @@ end
 
 function hook.E.load(load, self)
 	load(self)
-	package.loaded.mod_template_templates = nil
 	package.loaded.mod_template_scripts = nil
+	package.loaded.mod_template_templates = nil
 	
-	require("mod_template_templates")
 	require("mod_template_scripts")
+	require("mod_template_templates")
 end
 
 return hook

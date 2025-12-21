@@ -15,5 +15,5 @@ function scripts.hero_alleria.update(this, store)
 end
 --]]
 -- 注修改后需要在模板内重新引用该函数
--- T("hero_alleria").main_scripts.update = scripts.hero_alleria.update
+-- T("hero_alleria").main_script.update = scripts.hero_alleria.update
 
