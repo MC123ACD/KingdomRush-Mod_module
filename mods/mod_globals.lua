@@ -32,7 +32,6 @@ bor = bit.bor
 bnot = bit.bnot
 copy = table.deepclone
 clone = table.clone
-
 E = require("entity_db")
 UPGR = require("upgrades")
 storage = require("storage")

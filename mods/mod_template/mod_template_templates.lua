@@ -12,19 +12,8 @@ local function ady(v)
     return v - anchor_y * image_y
 end
 
-local function v(x, y)
-    return {
-        x = x,
-        y = y
-    }
-end
-
-local function vv(v1)
-    return {
-        x = v1,
-        y = v1
-    }
-end
+local v = V.v
+local vv = V.vv
 
 -- 这里可以覆盖模板，示例：
 -- 修改小公主移动速度
